@@ -3,7 +3,7 @@ Current maintainer: youwuyou (youwuyou@ethz.ch)
 In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 ---
 
-**Exercise Overview**
+## **Exercise Overview**
 
 ## Part 1 - Introduction
 
