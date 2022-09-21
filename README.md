@@ -1,10 +1,7 @@
-101-0250-00L Solving PDEs in parallel on GPUs
-
 ---
 Current maintainer: youwuyou (youwuyou@ethz.ch)
 In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 ---
-
 
 **Exercise Overview**
 
