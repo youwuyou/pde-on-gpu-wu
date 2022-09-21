@@ -1,4 +1,4 @@
-# 101-0250-00L Solving PDEs in parallel on GPUs
+101-0250-00L Solving PDEs in parallel on GPUs
 
 ---
 Current maintainer: youwuyou (youwuyou@ethz.ch)
@@ -6,9 +6,10 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 ---
 
 
-# **Exercise Overview**
+**Exercise Overview**
 
 ## Part 1 - Introduction
+
 
 ### Lecture 1: Why Julia GPU
 
@@ -42,6 +43,11 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | Code Exercise 3.4 | Seismic P-waves |  |
 
 
+
+
+
+
+
 ## Part 2 - solving PDEs on GPUs
 
 
@@ -71,6 +77,10 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | Code Exercise 6.1 | Data transfer optimisations |  |
 | Code Exercise 6.2 | Solving PDEs on GPUs |  |
 | Code Exercise 6.3 | Unit and reference tests |  |
+
+
+
+
 
 
 
