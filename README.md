@@ -13,8 +13,8 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | Number | Topic | Finished |
 | --- | --- | --- |
 | Code Exercise 1.1 | Car travel | :heavy_check_mark: |
-| Code Exercise 1.2 | Car travel in 2 dimensions |  |
-| Code Exercise 1.3 | Volcanic bomb |  |
+| Code Exercise 1.2 | Car travel in 2 dimensions | :heavy_check_mark: |
+| Code Exercise 1.3 | Volcanic bomb | :heavy_check_mark: |
 | Code Exercise 1.4 | (optional) - Orbital around a centre of mass |  |
 | Code Exercise 1.5 | (optional) - Many volcanic bombs |  |
 
