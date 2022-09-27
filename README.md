@@ -27,7 +27,7 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | Code Exercise 2.1 | Advection-Diffusion |  |
 | Code Exercise 2.2 | Reaction-Diffusion |  |
 | Code Exercise 2.3 | Nonlinear problems |  |
-| Code Exercise 2.4 | Julia install and Git repo |  |
+| Code Exercise 2.4 | Julia install and Git repo | :heavy_check_mark: |
 
 
 ### Lecture 3: Solving elliptic PDEs
