@@ -25,8 +25,8 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | Number | Topic | Finished |
 | --- | --- | --- |
 | Code Exercise 2.1 | Advection-Diffusion | :heavy_check_mark: |
-| Code Exercise 2.2 | Reaction-Diffusion |  |
-| Code Exercise 2.3 | Nonlinear problems |  |
+| Code Exercise 2.2 | Reaction-Diffusion | :heavy_check_mark: |
+| Code Exercise 2.3 | Nonlinear problems | :heavy_check_mark: |
 | Code Exercise 2.4 | Julia install and Git repo | :heavy_check_mark: |
 
 
