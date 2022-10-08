@@ -14,10 +14,6 @@
 
 => Inner loop: pseudo transient iterations
 
-=>  visualization realized in the 1st loop (physical loop) with `ncheck  = ceil(Int,0.25nx)`
-
-
- <img src="./docs/implicit_diffuson_1D.gif" width="60%">
 
 
 ### Task 2: Numerical experiment using the solver
@@ -26,16 +22,15 @@
 
 a) the spatial distribution of concentration C after nt=10 time steps, on top of the plot of the initial concentration distribution
 
-
-*todo, add plotting result here* 
-
-
-
-
 b) the error as function of iteration/nx.
 
-*todo, add plotting result here*
+=>  visualization realized in the 1st loop (physical loop)
+
+Case 1: `nt = 10` & `ncheck  = ceil(Int,0.25nx)`
+
+ <img src="./docs/implicit_diffuson_1D.gif" width="60%">
 
 
+Case 2: `nt = 40` & `ncheck  = ceil(Int,0.05nx)`
 
-
+ <img src="./docs/experiment01.gif" width="60%">

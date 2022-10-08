@@ -12,10 +12,10 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
 
     # numerics
     nx      = 100
-    nt      = 10                    # no. physical time steps -> adjusted from 10
+    nt      = 40                    # no. physical time steps -> adjusted from 10
     tol     = 1e-8
     maxiter = 50nx
-    ncheck  = ceil(Int,0.25nx)      # freq -> adjusted from 0.25nx
+    ncheck  = ceil(Int,0.05nx)      # freq -> adjusted from 0.25nx
 
     # derived numerics
     dx      = lx/nx
@@ -64,7 +64,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     end
 
     # file I/O
-    gif(anim, "implicit_diffuson_1D.gif", fps = 10)
+    gif(anim, "experiment01.gif", fps = 10)
 end
 
 implicit_diffusion_1D()
