@@ -1,44 +1,71 @@
 using Plots,Plots.Measures,Printf
 default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
-@views function steady_diffusion_1D()
+@views function implicit_diffusion_1D()
     # physics
     lx      = 20.0
     dc      = 1.0
-    C_eq    = 0.1
-    da      = 10.0
+    da      = 1000.0                # before 10.0
     re      = π + sqrt(π^2 + da)
-    ρ       = (lx/(dc*re))^2
-    ξ       = lx^2/dc/da
+    ρ       = (lx/(dc*re))^2        # ρ ↔ parameter for inertia term
+    dt       = lx^2/dc/da           # renamed from ξ
+
     # numerics
     nx      = 100
-    ϵtol    = 1e-8
+    nt      = 10                    # no. physical time steps -> adjusted from 10
+    tol     = 1e-8
     maxiter = 50nx
-    ncheck  = ceil(Int,0.25nx)
+    ncheck  = ceil(Int,0.25nx)      # freq -> adjusted from 0.25nx
+
     # derived numerics
     dx      = lx/nx
     xc      = LinRange(dx/2,lx-dx/2,nx)
     dτ      = dx/sqrt(1/ρ)
+
     # array initialisation
     C       = @. 1.0 + exp(-(xc-lx/4)^2) - xc/lx; C_i = copy(C)
+    C_old   = copy(C)         # structurally same as C_eq
     qx      = zeros(Float64, nx-1)
+    
     # iteration loop
-    iter = 1; err = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
-    while err >= ϵtol && iter <= maxiter
-        qx         .-= dτ./(ρ + dτ/dc).*(qx./dc                  .+ diff(C) ./dx)
-        C[2:end-1] .-= dτ./(1 + dτ/ξ) .*((C[2:end-1] .- C_eq)./ξ .+ diff(qx)./dx)
-        if iter%ncheck == 0
-            err = maximum(abs.(diff(dc.*diff(C)./dx)./dx .- (C[2:end-1] .- C_eq)./ξ))
-            push!(iter_evo,iter/nx); push!(err_evo,err)
-            p1 = plot(xc,[C_i,C];xlims=(0,lx), ylims=(-0.1,2.0),
-                      xlabel="lx",ylabel="Concentration",title="iter/nx=$(round(iter/nx,sigdigits=3))")
-            p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",
-                      yscale=:log10,grid=true,markershape=:circle,markersize=10)
-            display(plot(p1,p2;layout=(2,1)))
+    anim = @animate for it = 1:nt
+        C_old    = copy(C)          # keep a copy
+        iter     = 1                # pseudo-time stepping
+        iter_evo = Float64[]      # evolution tracking
+        err_evo  = Float64[]      # error tracking
+        err      = 2 * tol       
+        
+        while err >= tol && iter <= maxiter
+            
+            # updating using implicit timestepping
+            qx          .-= dτ./(ρ   .+ dτ/dc ).*(                         qx./dc     .+ diff(C) ./dx)    # remains unchanged
+            C[2:end-1]  .-= dτ./(1.0 .+ dτ/dt ).*((C[2:end-1] .- C_old[2:end-1])./ dt .+ diff(qx)./dx)    # transient term
+
+            # calculate residual norm and store
+            if iter % ncheck == 0
+                err = maximum(abs.(diff(dc.*diff(C)./dx)./dx .- (C[2:end-1] .- C_old[2:end-1])./ dt))
+                push!(iter_evo,iter/nx)
+                push!(err_evo,err)
+            end
+
+            iter += 1 # pseudo time increment
         end
-        iter += 1
+        
+        # visualisation
+        # the evolution plot
+        p1 = plot(xc,[C_i,C];xlims=(0,lx), ylims=(-0.1,2.0),
+                    xlabel="lx",ylabel="Concentration",title="iter/nx=$(round(iter/nx,sigdigits=3))")
+        
+        # the convergence plot
+        p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",
+                    yscale=:log10,grid=true,markershape=:circle,markersize=10)
+        display(plot(p1,p2;layout=(2,1)))
+
     end
+
+    # file I/O
+    gif(anim, "implicit_diffuson_1D.gif", fps = 10)
 end
 
-steady_diffusion_1D()
+implicit_diffusion_1D()
 
