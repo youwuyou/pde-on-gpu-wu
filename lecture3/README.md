@@ -17,7 +17,7 @@
 =>  visualization realized in the 1st loop (physical loop) with `ncheck  = ceil(Int,0.25nx)`
 
 
-![Implicit diffusion](./docs/implicit_diffusion_1D.gif)
+![Implicit diffusion](./docs/implicit_diffuson_1D.gif)
 
 
 ### Task 2: Numerical experiment using the solver
