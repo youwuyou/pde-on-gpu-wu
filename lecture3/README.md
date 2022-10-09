@@ -113,11 +113,22 @@ _Case 1: Without advection_
 Note: the upwind strategy is needed for the advective term, where we do case distinctions both for vx, vy.
 
 
-_Case 2: With boundary condition_
+_Case 2: With advection_
+
+- using the velocities as required in the task decription
 
 - velocities `vx = 1.0` , `vy = -1.0`
 
  <img src="./docs/implicit_advection_diffusion_2D.gif" width="60%">
+
+
+_Case 3: With advection (accelerated)_
+
+- in order to see the moving effect more clearly, I slightly highered the magnitude of the initial velocities
+
+- velocities `vx = 30.0` , `vy = -30.0`
+
+ <img src="./docs/implicit_advection_diffusion_2D_faster.gif" width="60%">
 
 
 

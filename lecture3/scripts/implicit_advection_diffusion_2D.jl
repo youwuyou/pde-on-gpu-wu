@@ -13,18 +13,16 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     nx, ny  = 200, 201
     dx, dy  = lx/nx, ly/ny
     xc, yc  = LinRange(dx/2,lx-dx/2,nx), LinRange(dy/2,ly-dy/2,ny)
-    nt      = 50                     # no. physical time steps -> 10 for task 2
+    nt      = 50                         # no. physical time steps -> 10 for task 2
     tol     = 1e-8
     maxiter = 10nx
-    ncheck  = ceil(Int, 0.02nx)     # freq -> adjusted from 0.25nx
-    
+    ncheck  = ceil(Int, 0.02nx)        
     dt = min(dx/abs(vx),dy/abs(vy))/2
 
-
     # derived physics
-    da      = lx^2/dc/dt            # before as constant
+    da      = lx^2/dc/dt             
     re      = π + sqrt(π^2 + da)
-    ρ       = (lx/(dc*re))^2        # ρ ↔ parameter for inertia term
+    ρ       = (lx/(dc*re))^2            # ρ ↔ parameter for inertia term
     dτ      = min(dx,dy)/sqrt(1/ρ)/sqrt(2)
     
     # array initialisation
@@ -73,11 +71,11 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
         end # of pseudo time loop
         
         # advection term using upwinding scheme
-        # (vx > 0) && (C[2:end, 1:end]   .-= dt .* vx .* diff(C, dims = 1)./dx)
-        # (vx < 0) && (C[1:end-1, 1:end] .-= dt .* vx .* diff(C, dims = 1)./dx)        
+        (vx > 0) && (C[2:end, 1:end]   .-= dt .* vx .* diff(C, dims = 1)./dx)
+        (vx < 0) && (C[1:end-1, 1:end] .-= dt .* vx .* diff(C, dims = 1)./dx)        
         
-        # (vy > 0) && (C[1:end, 2:end]   .-= dt .* vy .* diff(C, dims = 2)./dy)
-        # (vy < 0) && (C[1:end, 1:end-1] .-= dt .* vy .* diff(C, dims = 2)./dy)
+        (vy > 0) && (C[1:end, 2:end]   .-= dt .* vy .* diff(C, dims = 2)./dy)
+        (vy < 0) && (C[1:end, 1:end-1] .-= dt .* vy .* diff(C, dims = 2)./dy)
 
 
         # visualisation - the evolution of concentration
