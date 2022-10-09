@@ -136,8 +136,34 @@ _Case 3: With advection (accelerated)_
 
 ## Code Exercise 3.4: Optimal iteration parameters for pseudo-transient method
 
-### Task 1:
+Goal: verify numerically the optimality of the chosen pseudo-transient parameters.
+
+Set-up: 1D elliptic solver for the steady-state diffusion
+
+### Task 1: Study of the convergence rate
+
+- experiment uses the script `l3_steadt_diffusion_1D.jl`   
+
+In the original code we have the following parameter
+
+=> `ρ  = (lx/(dc*2π))^2`
 
 
-### Task 2:
 
+- We vary the numerical parameter `re` 
+
+    `re = 2π*fact[ifact]`
+    
+    `ρ  = (lx/(dc*re))^2`
+
+=> `ρ  = (lx/(dc * 2π*fact[ifact] ))^2`
+
+
+
+
+- Plotted result:
+
+ <img src="./docs/convergence_study.png" width="60%">
+
+
+We observe that we have the less iteration steps to do when fact is around 1.0 - 1.1. Which verifies the original choice of dc*2π as denominator for the choice of ρ.
