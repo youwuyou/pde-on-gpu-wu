@@ -79,7 +79,45 @@ I am not sure if the boundary conditions should be simply manually set like this
 
 ## Code Exercise 3.3: Advection-diffusion in 2D
 
-### Task 1:
+### Task 1: implementation without advection
+
+- Dimensional consideration
+
+For the derivatives we need to consider about the dimensions of the array. Following were the notes taken during the implementation:
+
+Given C /in R^{100, 100}
+
+`diff(C, dims=1)` => 99 x 100
+
+`diff(C, dims=2)` => 100 x 99
+
+- qx /in R^{99, 100}
+
+`diff(qx, dims=2)` => {99,99}
+
+- qy /in R^{100, 99}
+
+`diff(qx, dims=1)` => {99,99}
+
+
+_Case 1: Without advection_
+
+
+ <img src="./docs/implicit_diffusion_2D.gif" width="60%">
+
+
+
+
+### Task 2: implementation with advection
+
+Note: the upwind strategy is needed for the advective term, where we do case distinctions both for vx, vy.
+
+
+_Case 2: With boundary condition_
+
+- velocities `vx = 1.0` , `vy = -1.0`
+
+ <img src="./docs/implicit_advection_diffusion.gif" width="60%">
 
 
 
