@@ -117,7 +117,7 @@ _Case 2: With boundary condition_
 
 - velocities `vx = 1.0` , `vy = -1.0`
 
- <img src="./docs/implicit_advection_diffusion.gif" width="60%">
+ <img src="./docs/implicit_advection_diffusion_2D.gif" width="60%">
 
 
 

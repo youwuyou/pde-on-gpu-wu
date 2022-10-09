@@ -36,12 +36,8 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | --- | --- | --- |
 | Code Exercise 3.1 | Implicit transient diffusion using dual timestepping | :heavy_check_mark: |
 | Code Exercise 3.2 | Operator-splitting for advection-diffusion | :heavy_check_mark: |
-| Code Exercise 3.3 | Advection-diffusion in 2D
- |  |
+| Code Exercise 3.3 | Advection-diffusion in 2D | :heavy_check_mark: |
 | Code Exercise 3.4 | Optimal iteration parameters for pseudo-transient method |  |
-
-
-
 
 
 
