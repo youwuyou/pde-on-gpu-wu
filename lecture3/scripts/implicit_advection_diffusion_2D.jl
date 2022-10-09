@@ -33,10 +33,10 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     
 
     anim = @animate for it = 1:nt
-        C_old   .= C          # keep a copy
-        iter     = 1                # pseudo-time stepping
-        iter_evo = Float64[]        # evolution
-        err_evo  = Float64[]        # evolution of error
+        C_old   .= C                   # keep a copy
+        iter     = 1                   # pseudo-time stepping
+        iter_evo = Float64[]           # evolution
+        err_evo  = Float64[]           # evolution of error
         err      = 2 * tol       
         
 

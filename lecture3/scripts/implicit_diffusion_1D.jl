@@ -24,15 +24,15 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     
     # array initialisation
     C       = @. 1.0 + exp(-(xc-lx/4)^2) - xc/lx; C_i = copy(C)
-    C_old   = copy(C)         # structurally same as C_eq
+    C_old   = copy(C)              # structurally same as C_eq
     qx      = zeros(Float64, nx-1)
     
     # iteration loop
     anim = @animate for it = 1:nt
         C_old    = copy(C)          # keep a copy
         iter     = 1                # pseudo-time stepping
-        iter_evo = Float64[]      # evolution tracking
-        err_evo  = Float64[]      # error tracking
+        iter_evo = Float64[]        # evolution tracking
+        err_evo  = Float64[]        # error tracking
         err      = 2 * tol       
         
         while err >= tol && iter <= maxiter

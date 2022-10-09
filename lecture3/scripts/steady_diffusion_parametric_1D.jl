@@ -10,7 +10,6 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     nx      = 100
     ϵtol    = 1e-8
     maxiter = 100nx
-    ncheck  = ceil(Int,0.25nx)
  
     # numerics => convergence
     fact = 0.5:0.1:1.5         # range of factors to mult with re
@@ -23,7 +22,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
 
     for ifact in eachindex(fact)
         # array initialisation
-        C       = @. 1.0 + exp(-(xc-lx/4)^2) - xc/lx; C_i = copy(C)
+        C       = @. 1.0 + exp(-(xc-lx/4)^2) - xc/lx
         qx      = zeros(Float64, nx-1)
         
         # for convergence test

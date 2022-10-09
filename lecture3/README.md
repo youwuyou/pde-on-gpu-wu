@@ -1,5 +1,14 @@
 # Lecture 3: Solving elliptic PDEs
 
+- Code exercise 3.1 ↔ `implicit_diffusion_1D.jl`
+
+- Code exercise 3.2 ↔ `implicit_transient_advection_diffusion_1D.jl`
+
+- Code exercise 3.3 ↔ `implicit_advection_diffusion_2D.jl`
+
+- Code exercise 3.4 ↔ `steady_diffusion_parametric_1D.jl`
+
+
 ## Code exercise 3.1:  Implicit transient diffusion using dual timestepping
 
 **Idea:** Using structurally similar diffusion-reaction 1D solver and change it to solve the implicite transient diffusion problem.

@@ -5,22 +5,22 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     
     # physics
     dc      = 1.0
-    vx      = 1.0                   # advection velocity
+    vx      = 1.0                     # advection velocity
     
     # numerics
     lx      = 20.0
     nx      = 100
-    nt      = 40                    # no. physical time steps -> adjusted from 10
+    nt      = 40                     # no. physical time steps -> adjusted from 10
     tol     = 1e-8
     maxiter = 50nx
-    ncheck  = ceil(Int,0.05nx)      # freq -> adjusted from 0.25nx
+    ncheck  = ceil(Int,0.05nx)       # freq -> adjusted from 0.25nx
     dx      = lx/nx
-    dt      = dx/abs(vx)           # renamed from ξ
+    dt      = dx/abs(vx)             # renamed from ξ
     
     # derived physics
-    da      = lx^2/dc/dt            # before as constant
+    da      = lx^2/dc/dt             # before as constant
     re      = π + sqrt(π^2 + da)
-    ρ       = (lx/(dc*re))^2        # ρ ↔ parameter for inertia term
+    ρ       = (lx/(dc*re))^2         # ρ ↔ parameter for inertia term
     
     # derived numerics
     xc      = LinRange(dx/2,lx-dx/2,nx)
@@ -30,15 +30,15 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     
     # array initialisation
     C       = @. 1.0 + exp(-(xc-lx/4)^2) - xc/lx; C_i = copy(C)
-    C_old   = copy(C)         # structurally same as C_eq
+    C_old   = copy(C)               # structurally same as C_eq
     qx      = zeros(Float64, nx-1)
     
     # iteration loop
     anim = @animate for it = 1:nt
         C_old    = copy(C)          # keep a copy
         iter     = 1                # pseudo-time stepping
-        iter_evo = Float64[]      # evolution tracking
-        err_evo  = Float64[]      # error tracking
+        iter_evo = Float64[]        # evolution tracking
+        err_evo  = Float64[]        # error tracking
         err      = 2 * tol       
         
         while err >= tol && iter <= maxiter
@@ -63,7 +63,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
         
         (it % (nt÷2) == 0) && (vx = - vx) # change the direction of propagation
 
-        # boundary conditon
+        # boundary conditon (optional)
         # C[1] = 1
         # C[end] = 0
 
