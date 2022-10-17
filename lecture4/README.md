@@ -13,9 +13,19 @@ We finally want to solve a system of coupled PDE which model the incompressible 
 - red terms  <->  Temperature flux
  
 $$
-\begin{cases}
- \color{blue}\theta_D \frac{\partial \vec{q_D}}{\partial \tau}  + \vec{q_D} = - \frac{k}{\eta}(\nabla p - \rho_0 \alpha \vec{g} T) \\  \color{blue} \beta \frac{\partial P}{\partial \tau} - \nabla \cdot \vec{q_D} = 0  \\  \color{red} \theta_T \frac{\partial \vec{q_T}}{\partial \tau}  +\vec{q_T} = - \frac{\lambda}{\rho_0 c_p} \nabla T  \\ \color{red} \frac{\partial T}{\partial \tau} +  \frac{\partial T}{\partial t}+   \frac{1}{\varphi} \vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0
-\end{cases}
+ \color{blue}\theta_D \frac{\partial \vec{q_D}}{\partial \tau}  + \vec{q_D} = - \frac{k}{\eta}(\nabla p - \rho_0 \alpha \vec{g} T)
+$$
+
+$$
+\color{blue} \beta \frac{\partial P}{\partial \tau} - \nabla \cdot \vec{q_D} = 0
+$$
+
+$$
+\color{red} \theta_T \frac{\partial \vec{q_T}}{\partial \tau}  +\vec{q_T} = - \frac{\lambda}{\rho_0 c_p} \nabla T
+$$
+
+$$
+\color{red} \frac{\partial T}{\partial \tau} +  \frac{\partial T}{\partial t}+   \frac{1}{\varphi} \vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0
 $$
 
 ### Task 1: Solve equation for pressure (1D)
@@ -24,21 +34,22 @@ $$
 - Start point:  Steady diffusion 1D
 
 $$
-\begin{cases}   
-    \rho \frac{\partial q}{\partial \tau} \color{b}+ \frac{1}{D} q = - \frac{\partial C}{\partial x} \\ 
-\frac{\partial C}{\partial \tau}- \frac{\partial q}{\partial x}=0
+    \rho \frac{\partial q}{\partial \tau} \color{b}+ \frac{1}{D} q = - \frac{\partial C}{\partial x}
+$$
 
-\end{cases}
+$$
+\frac{\partial C}{\partial \tau}- \frac{\partial q}{\partial x}=0
 $$
 
 - NOTE:  we had `D = 1.0` in our previous code, following is the equation we try to solve in first task by renaming the variables.
 
+$$  
+{\color{purple}\theta_D}\frac{\partial q_D}{\color{purple}{\partial \tau}} \color{b}+ \frac{k}{\eta_f} q_D = - \frac{\partial P_f}{\partial x}
 $$
-\begin{cases}   
-{\color{purple}\theta_D}\frac{\partial q_D}{\color{purple}{\partial \tau}} \color{b}+ \frac{k}{\eta_f} q_D = - \frac{\partial P_f}{\partial x} \\ \color{pink}\beta \color{b} 
-\frac{\partial P_f}{\color{pink}\partial \tau} - \frac{\partial q_D}{\partial x}= 0
 
-\end{cases}
+$$
+\color{pink}\beta \color{b} 
+\frac{\partial P_f}{\color{pink}\partial \tau} - \frac{\partial q_D}{\partial x}= 0
 $$
 
  <img src="./docs/momentum_eq_pressure_1D.gif" width="60%">
