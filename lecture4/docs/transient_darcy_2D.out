@@ -1,0 +1,10 @@
+it = 1, iter/nx=7.0, err_Pf=9.326e-09
+it = 2, iter/nx=0.3, err_Pf=6.279e-09
+it = 3, iter/nx=0.3, err_Pf=3.226e-09
+it = 4, iter/nx=0.3, err_Pf=1.831e-09
+it = 5, iter/nx=0.3, err_Pf=9.929e-10
+it = 6, iter/nx=0.3, err_Pf=7.967e-10
+it = 7, iter/nx=0.3, err_Pf=4.129e-10
+it = 8, iter/nx=0.3, err_Pf=2.985e-10
+it = 9, iter/nx=0.3, err_Pf=1.262e-10
+it = 10, iter/nx=0.3, err_Pf=8.299e-11
