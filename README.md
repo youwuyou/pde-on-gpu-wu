@@ -49,10 +49,8 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 
 | Number | Topic | Finished |
 | --- | --- | --- |
-| Code Exercise 4.1 | Nonlinear diffusion in 2D |  |
-| Code Exercise 4.2 | Damped Laplacian |  |
-| Code Exercise 4.3 | Nonlinear steady-state diffusion 1D |  |
-| Code Exercise 4.4 | Nonlinear steady-state diffusion 2D |  |
+| Code Exercise 4.1 | Thermal porous convection in 2D |  |
+| Code Exercise 4.2 | Thermal porous convection with implicit temperature update |  |
 
 
 ### Lecture 5: Parallel computing
@@ -60,9 +58,8 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | Number | Topic | Finished |
 | --- | --- | --- |
 | Code Exercise 5.1 | Performance implementation: Diffusion 2D |  |
-| Code Exercise 5.2 | Performance implementation: Acoustic 2D |  |
-| Code Exercise 5.3 | Performance evaluation |  |
-| Code Exercise 5.4 | Unit tests |  |
+| Code Exercise 5.2 | Performance evaluation: Diffusion 2D (strong scaling test)  |  |
+| Code Exercise 5.3 | Unit tests |  |
 
 ### Lecture 6: GPU computing & perf
 
