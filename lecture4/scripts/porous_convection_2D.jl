@@ -1,5 +1,6 @@
 using Plots,Plots.Measures,Printf
-default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
+default(size=(1300,1000),framestyle=:box,label=false,grid=false,margin=15mm, top_margin=5mm, right_margin=40mm, lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
+
 
 @views function porous_convection_2D()
     # physics
@@ -38,11 +39,6 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     qDy      = zeros(Float64, nx, ny + 1) # 100 x 51
     
     
-    # plotting option
-    opts = (aspect_ratio=1, xlims=(xc[1], xc[end]), ylims=(yc[1], yc[end]), 
-    c=:turbo, xlabel="Lx", ylabel="Ly")
-    
-    
     # physical time loop
     anim = @animate for it = 1:nt
         
@@ -66,9 +62,10 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
 
         end
         
-        p1 = heatmap(xc, yc, Pf'; title="time = $(round(it,sigdigits=3))", opts...)
-        
-        display(p1)
+        display(heatmap(xc, yc, Pf'; title="\n \nPorous convection 2D \nTime = $(round(it,sigdigits=1))",
+                aspect_ratio=1.3, xlims=(xc[1], xc[end]), ylims=(yc[1], yc[end]), c=:turbo, xlabel="Lx", ylabel="Ly", size=(1700, 1300), colorbar_formatter= :scientific) )
+        # display(heatmap(xc,yc,Pf';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
+
         
         @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
     end
