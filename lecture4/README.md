@@ -17,7 +17,7 @@ $$
 $$
 
 $$
-\color{blue} \beta \frac{\partial P}{\partial \tau} - \nabla \cdot \vec{q_D} = 0
+\color{blue} \beta \frac{\partial P}{\partial \tau} + \nabla \cdot \vec{q_D} = 0
 $$
 
 $$
@@ -38,7 +38,7 @@ $$
 $$
 
 $$
-\frac{\partial C}{\partial \tau}- \frac{\partial q}{\partial x}=0
+\frac{\partial C}{\partial \tau} + \frac{\partial q}{\partial x}=0
 $$
 
 - NOTE:  we had `D = 1.0` in our previous code, following is the equation we try to solve in first task by renaming the variables.
@@ -76,19 +76,40 @@ Following is the result (truncated) from the one-line code that prints out the c
   iter/nx=7.5, err_Pf=8.064e-09
 ```
 
-### Task 3:
+### Task 3: Visualization outside of the iteration loop & Error monitoring
 
-`transient_darcy_2D.out`
+Followingly is the truncated output
+
+```
+it = 1, iter/nx=7.0, err_Pf=9.326e-09
+it = 2, iter/nx=0.3, err_Pf=6.279e-09
+...
+it = 9, iter/nx=0.3, err_Pf=1.262e-10
+it = 10, iter/nx=0.3, err_Pf=8.299e-11
+
+```
+
+
+More see the `transient_darcy_2D.out` in `docs/` folder
 
 
  <img src="./docs/transient_momentum_eq_pressure_2D.gif" width="60%">
 
 
-### Task 4:
+### Task 4: Add fields for the temperature evolution
 
-todo
+We added the terms for the temperature evolution in this task.
+
 
 ### Task 5:
+
+not completed, failed to debug
+
+ <img src="./docs/transient_momentum_eq_pressure_2D.gif" width="60%">
+
+
+
+
 
 
 ## Code Exercise 4.2: Thermal porous convection with implicit temperature update
