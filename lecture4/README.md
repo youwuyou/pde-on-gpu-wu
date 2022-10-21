@@ -48,8 +48,8 @@ $$
 $$
 
 $$
-\color{pink}\beta \color{b} 
-\frac{\partial P_f}{\color{pink}\partial \tau} - \frac{\partial q_D}{\partial x}= 0
+{\color{pink}\beta} \color{b} 
+\frac{\partial P_f}{\color{pink}\partial \tau} + \frac{\partial q_D}{\partial x}= 0
 $$
 
  <img src="./docs/momentum_eq_pressure_1D.gif" width="60%">
@@ -92,8 +92,6 @@ it = 10, iter/nx=0.3, err_Pf=8.299e-11
 
 More see the `transient_darcy_2D.out` in `docs/` folder
 
-
- <img src="./docs/transient_momentum_eq_pressure_2D.gif" width="60%">
 
 
 ### Task 4: Add fields for the temperature evolution
