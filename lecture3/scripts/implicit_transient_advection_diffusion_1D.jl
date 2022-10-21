@@ -64,8 +64,9 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
         (it % (nt÷2) == 0) && (vx = - vx) # change the direction of propagation
 
         # boundary conditon (optional)
-        # C[1] = 1
-        # C[end] = 0
+        # CORRECTION! optional features shall not be commented out
+        C[1] = 1
+        C[end] = 0
 
         # visualisation
         # the evolution plot

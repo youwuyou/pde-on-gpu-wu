@@ -6,7 +6,9 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     
     # physics
     dc      = 1.0
-    vx, vy  = 1.0, -1.0                   # advection velocity
+
+    # CORRECTION! Intial speed wrongly set to 1.0 somehow
+    vx, vy  = 10.0, -10.0                   # advection velocity
     
     # numerics
     lx, ly  = 10.0, 10.0
