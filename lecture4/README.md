@@ -1,6 +1,9 @@
 Lecture 4: Solving elliptic PDEs
 
-- Code exercise 4.1 ↔ `porous_convection_2D.jl`
+- Code exercise 4.1 
+                    Task 1-4  ↔ `porous_convection_2D_heatmap.jl`
+                    Task 5    ↔ `porous_convection_2D_quiver.jl`
+
 
 - Code exercise 4.2 ↔ `todo`
 
@@ -93,40 +96,94 @@ it = 10, iter/nx=0.3, err_Pf=8.299e-11
 More see the `transient_darcy_2D.out` in `docs/` folder
 
 
- <img src="./docs/transient_momentum_eq_pressure_2D.gif" width="60%">
-
 
 ### Task 4: Add fields for the temperature evolution
 
-We added the terms for the temperature evolution in this task.
+Till now we have implemented the equations for pressure, where temperature was omitted.
 
+We added the terms for the temperature evolution in this task. Followingly are the equations to be solved (without adding the pseudo terms)
+
+
+
+- Subtask 1:  add temperature term to the existing momentum equation for the Darcy’s flux
+
+STEP 1: list out equations
+
+*Part 1:  Darcy flux*
+
+$$
+\vec{q_D} = -\frac{k}{\eta} (\nabla P-\rho_0\alpha \vec{g}T)
+$$
+
+$$
+\nabla \cdot \vec{q_D} = 0
+$$
+
+---
+
+*Part 2:  Temperature flux*
+
+$$
+\vec{q_T} = -\frac{\lambda}{\rho_0C_p} \nabla T
+$$
+
+$$
+\frac{\partial T}{\partial t} + \frac{1}{\varphi}\vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0
+$$
+
+---
+
+STEP 2: add transient terms to the equations to be solved implicitly ⇒ part 1
+
+(eq⭐)
+
+$$
+{\color{red} \theta_D \frac{\partial q_D}{\partial  \tau}}\vec{q_D} = -\frac{k}{\eta} (\nabla P-\rho_0\alpha \vec{g}T)
+$$
+
+---
+
+- Subtask 2: discretize equations for the temperature
+
+For the mass-balance equation
+
+$$
+\frac{\partial T}{\partial t} + \frac{1}{\varphi}\vec{q_D} \cdot \nabla T -\frac{\lambda}{\rho_0C_p} \nabla \cdot (\nabla T) = 0
+$$
+
+discretizing in x-direction
+
+$$
+\frac{\partial T}{\partial t} + \frac{1}{\varphi}\vec{q_D} \cdot \frac{\partial T}{\partial x} -\frac{\lambda}{\rho_0C_p} \frac{\partial}{\partial x}(\frac{\partial T}{\partial x}) = 0
+$$
+
+$$
+\frac{\partial T}{\partial t} + \frac{1}{\varphi}\vec{q_D} \cdot \frac{\partial T}{\partial x} -\frac{\lambda}{\rho_0C_p} \frac{\partial^2 T}{\partial x^2} = 0
+$$
 
 More see the `with_temperature_2D.out`
 
 ```
-  iter/nx=9.8, err_Pf=6.185e-09
-it = 1, iter/nx=9.8, err_Pf=6.185e-09
-  iter/nx=9.1, err_Pf=6.803e-09
-it = 2, iter/nx=9.1, err_Pf=6.803e-09
-  iter/nx=9.1, err_Pf=8.603e-09
-it = 3, iter/nx=9.1, err_Pf=8.603e-09
-  iter/nx=9.1, err_Pf=9.083e-09
+it = 1, iter/nx=9.8, err_Pf=8.515e-09
+it = 2, iter/nx=8.3, err_Pf=8.140e-09
+it = 3, iter/nx=8.3, err_Pf=7.306e-09
 ...
-  iter/nx=9.6, err_Pf=6.370e-09
-it = 9, iter/nx=9.6, err_Pf=6.370e-09
-  iter/nx=9.6, err_Pf=7.790e-09
-it = 10, iter/nx=9.6, err_Pf=7.790e-09
+it = 496, iter/nx=7.8, err_Pf=9.333e-09
+it = 497, iter/nx=7.8, err_Pf=9.000e-09
+it = 498, iter/nx=7.8, err_Pf=8.892e-09
+it = 499, iter/nx=7.8, err_Pf=8.866e-09
+it = 500, iter/nx=7.8, err_Pf=8.828e-09
 ```
 
 
 In the plot we can see the temperature and the pressure are experiencing advection and diffusion.
 
- <img src="./docs/pressure_temperature_2D.gif" width="60%">
+ <img src="./docs/transient_momentum_eq_pressure_2D_heatmap.gif" width="60%">
 
 
 
 
-### Task 5:
+### Task 5: Plotting using quiver
 
 Added terms:
 
@@ -137,7 +194,7 @@ Added terms:
 
 ```
 
- <img src="./docs/transient_momentum_eq_pressure_2D.gif" width="60%">
+ <img src="./docs/transient_momentum_eq_pressure_2D_quiver.gif" width="60%">
 
 
 
@@ -150,6 +207,7 @@ Added terms:
 ### Task 1:
 
 ### Task 2:
+
 
 
 
