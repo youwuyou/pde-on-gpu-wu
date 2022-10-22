@@ -160,7 +160,7 @@ $$
 
 In the plot we can see the temperature and the pressure are experiencing advection and diffusion.
 
- <img src="./docs/transient_momentum_eq_pressure_2D_heatmap.gif" width="60%">
+ <img src="./docs/pressure_temperature_2D.gif" width="60%">
 
 More see the `with_temperature_2D.out`
 
@@ -192,7 +192,7 @@ Added terms:
 
 ```
 
- <img src="./docs/transient_momentum_eq_pressure_2D_quiver.gif" width="60%">
+ <img src="./docs/pressure_temperature_2D_quiver.gif" width="60%">
 
 
 
