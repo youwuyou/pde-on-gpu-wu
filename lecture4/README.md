@@ -104,11 +104,6 @@ Till now we have implemented the equations for pressure, where temperature was o
 We added the terms for the temperature evolution in this task. Followingly are the equations to be solved (without adding the pseudo terms)
 
 
-
-- Subtask 1:  add temperature term to the existing momentum equation for the Darcy’s flux
-
-STEP 1: list out equations
-
 *Part 1:  Darcy flux*
 
 $$
@@ -121,19 +116,20 @@ $$
 
 ---
 
-*Part 2:  Temperature flux*
+*Part 2:  Temperature*
 
 $$
-\vec{q_T} = -\frac{\lambda}{\rho_0C_p} \nabla T
-$$
-
-$$
-\frac{\partial T}{\partial t} + \frac{1}{\varphi}\vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0
+\frac{\partial T}{\partial t} + \frac{1}{\varphi}\vec{q_D} \cdot \nabla T -\frac{\lambda}{\rho_0C_p} \nabla \cdot (\nabla T) = 0
 $$
 
 ---
 
-STEP 2: add transient terms to the equations to be solved implicitly ⇒ part 1
+
+
+- Subtask 1:  add temperature term to the existing momentum equation for the Darcy’s flux
+
+
+Add transient terms to the equations to be solved implicitly ⇒ part 1
 
 (eq⭐)
 
@@ -161,6 +157,11 @@ $$
 \frac{\partial T}{\partial t} + \frac{1}{\varphi}\vec{q_D} \cdot \frac{\partial T}{\partial x} -\frac{\lambda}{\rho_0C_p} \frac{\partial^2 T}{\partial x^2} = 0
 $$
 
+
+In the plot we can see the temperature and the pressure are experiencing advection and diffusion.
+
+ <img src="./docs/transient_momentum_eq_pressure_2D_heatmap.gif" width="60%">
+
 More see the `with_temperature_2D.out`
 
 ```
@@ -176,9 +177,6 @@ it = 500, iter/nx=7.8, err_Pf=8.828e-09
 ```
 
 
-In the plot we can see the temperature and the pressure are experiencing advection and diffusion.
-
- <img src="./docs/transient_momentum_eq_pressure_2D_heatmap.gif" width="60%">
 
 
 
