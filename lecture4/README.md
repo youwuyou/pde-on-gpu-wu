@@ -48,8 +48,8 @@ $$
 $$
 
 $$
-{\color{pink}\beta} \color{b} 
-\frac{\partial P_f}{\color{pink}\partial \tau} + \frac{\partial q_D}{\partial x}= 0
+\color{pink}\beta \color{b} 
+\frac{\partial P_f}{\color{pink}\partial \tau} - \frac{\partial q_D}{\partial x}= 0
 $$
 
  <img src="./docs/momentum_eq_pressure_1D.gif" width="60%">
@@ -93,15 +93,49 @@ it = 10, iter/nx=0.3, err_Pf=8.299e-11
 More see the `transient_darcy_2D.out` in `docs/` folder
 
 
+ <img src="./docs/transient_momentum_eq_pressure_2D.gif" width="60%">
+
 
 ### Task 4: Add fields for the temperature evolution
 
 We added the terms for the temperature evolution in this task.
 
 
+More see the `with_temperature_2D.out`
+
+```
+  iter/nx=9.8, err_Pf=6.185e-09
+it = 1, iter/nx=9.8, err_Pf=6.185e-09
+  iter/nx=9.1, err_Pf=6.803e-09
+it = 2, iter/nx=9.1, err_Pf=6.803e-09
+  iter/nx=9.1, err_Pf=8.603e-09
+it = 3, iter/nx=9.1, err_Pf=8.603e-09
+  iter/nx=9.1, err_Pf=9.083e-09
+...
+  iter/nx=9.6, err_Pf=6.370e-09
+it = 9, iter/nx=9.6, err_Pf=6.370e-09
+  iter/nx=9.6, err_Pf=7.790e-09
+it = 10, iter/nx=9.6, err_Pf=7.790e-09
+```
+
+
+In the plot we can see the temperature and the pressure are experiencing advection and diffusion.
+
+ <img src="./docs/pressure_temperature_2D.gif" width="60%">
+
+
+
+
 ### Task 5:
 
-not completed, failed to debug
+Added terms:
+
+```
+    qDxc      = zeros(Float64, nx, ny)               # 100 x 50
+    qDyc      = zeros(Float64, nx, ny)               # 100 x 50
+    qDmag     = zeros(Float64, nx, ny)
+
+```
 
  <img src="./docs/transient_momentum_eq_pressure_2D.gif" width="60%">
 

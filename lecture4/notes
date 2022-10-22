@@ -1,0 +1,32 @@
+        if it % nvis == 0
+            qDxc     .= qDx[1:end-1, :] .+ diff(qDx, dims=1) ./ 2 # average qDx in x
+            qDyc     .= qDy[:, 1:end-1] .+ diff(qDy, dims=2) ./ 2 # average qDx in y
+            
+            qDmag    .= sqrt.(qDxc.^2 .+ qDyc.^2)
+            qDxc    ./= qDmag
+            qDyc    ./= qDmag
+            
+            qDx_p     = qDxc[1:st:end,1:st:end]
+            qDy_p     = qDyc[1:st:end,1:st:end]
+
+            heatmap(xc,yc,T';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]), clims=(-100, 100), aspect_ratio=1,c=:turbo)
+            display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
+        end
+
+
+
+
+        (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1]) ./ dt 
+                                                                .+ 
+
+
+
+                                                                
+            # temperature flux - 99 x 50
+            # qTx[2:end-1, :]  .-= (qTx[2:end-1, :] .+  (diff(T, dims=1) ./ dx)) ./ (1.0 + θ_dτ)
+            # qTy[:, 2:end-1]  .-= (qTy[:, 2:end-1] .+  (diff(T, dims=2) ./ dy)) ./ (1.0 + θ_dτ)
+                        
+
+            qTx       = zeros(Float64, nx + 1, ny)           # 101 x 50
+            qTy       = zeros(Float64, nx, ny + 1)           # 100 x 51
+        

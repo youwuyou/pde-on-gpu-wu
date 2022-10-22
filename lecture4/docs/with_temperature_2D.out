@@ -1,0 +1,20 @@
+  iter/nx=9.8, err_Pf=6.185e-09
+it = 1, iter/nx=9.8, err_Pf=6.185e-09
+  iter/nx=9.1, err_Pf=6.803e-09
+it = 2, iter/nx=9.1, err_Pf=6.803e-09
+  iter/nx=9.1, err_Pf=8.603e-09
+it = 3, iter/nx=9.1, err_Pf=8.603e-09
+  iter/nx=9.1, err_Pf=9.083e-09
+it = 4, iter/nx=9.1, err_Pf=9.083e-09
+  iter/nx=9.3, err_Pf=5.975e-09
+it = 5, iter/nx=9.3, err_Pf=5.975e-09
+  iter/nx=9.3, err_Pf=7.429e-09
+it = 6, iter/nx=9.3, err_Pf=7.429e-09
+  iter/nx=9.3, err_Pf=9.222e-09
+it = 7, iter/nx=9.3, err_Pf=9.222e-09
+  iter/nx=9.3, err_Pf=9.698e-09
+it = 8, iter/nx=9.3, err_Pf=9.698e-09
+  iter/nx=9.6, err_Pf=6.370e-09
+it = 9, iter/nx=9.6, err_Pf=6.370e-09
+  iter/nx=9.6, err_Pf=7.790e-09
+it = 10, iter/nx=9.6, err_Pf=7.790e-09
