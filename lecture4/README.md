@@ -225,7 +225,8 @@ _Did the number of iterations required for convergence change compared to the ve
 
 *Comparison*
 
-| solver type | no.iterations | 
+| solver type | no.iterations |
+| --- | --- |
 | implicit `Pr`, explicit `T`| 504448 |
 | implicit `Pr`, implicit `T`| 271936 |
 
@@ -293,10 +294,11 @@ Observation:  we can observe the development of the convection is more significa
 Question: What is the difference in the results for the different values of Ra, is there an observable trend? Write a comment explaining your observations.
 
 | Rayleigh's number | no.iterations | 
+| --- | --- |
 | 10.0 | 247892 |
-| 40.0| 1144860 |
-| 100.0| 76864 |
-| 1000.0| 55296 |
+| 40.0 | 1144860 |
+| 100.0 | 76864 |
+| 1000.0 | 55296 |
 
 
 
