@@ -7,9 +7,9 @@ function Pf_diffusion_2D(;do_check=false)
     k_ηf    = 1.0
    
     # numerics
-    nx,ny   = 127,127
+    nx,ny   = 2047,2047
     ϵtol    = 1e-8
-    maxiter = 10max(nx,ny)
+    maxiter = 100                                #max(nx,ny)
     ncheck  = ceil(Int,0.25max(nx,ny))
     cfl     = 1.0/sqrt(2.1)
     re      = 2π
@@ -24,6 +24,12 @@ function Pf_diffusion_2D(;do_check=false)
     Pf      = @. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2)
     qDx,qDy = zeros(Float64, nx+1,ny),zeros(Float64, nx,ny+1)
     r_Pf    = zeros(nx,ny)
+    k_ηf_dx = k_ηf / dx
+    k_ηf_dy = k_ηf / dy
+
+    _1_θ_dτ  =  1.0 ./(1.0 + θ_dτ)
+    _dx_β_dτ = 1.0 / dx / β_dτ
+    _dy_β_dτ = 1.0 / dy / β_dτ
   
     # iteration loop
     iter = 1; err_Pf = 2ϵtol
@@ -32,10 +38,10 @@ function Pf_diffusion_2D(;do_check=false)
     while err_Pf >= ϵtol && iter <= maxiter
         if iter == 11 t_tic = Base.time(); niter=0; end
 
-        qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf.*(diff(Pf,dims=1)./dx))./(1.0 + θ_dτ)
-        qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf.*(diff(Pf,dims=2)./dy))./(1.0 + θ_dτ)
+        qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf_dx.*(diff(Pf,dims=1))) .* _1_θ_dτ
+        qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf_dy.*(diff(Pf,dims=2))) .* _1_θ_dτ
 
-        Pf             .-= (diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy)./β_dτ
+        Pf             .-= diff(qDx,dims=1) .* _dx_β_dτ .+ diff(qDy,dims=2).* _dy_β_dτ
 
         if do_check && (iter%ncheck == 0)
             r_Pf  .= diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy
@@ -46,8 +52,8 @@ function Pf_diffusion_2D(;do_check=false)
         iter += 1; niter +=1
     end
     t_toc = Base.time() - t_tic
-    A_eff = 3 * 2 * nx * ny * sizeof(eltype(Pf)) /  1e9 # effective memory access per second
-    t_it =  t_toc/niter   # execution time per iterations [s]
+    A_eff = 3 * 2 * nx * ny * sizeof(eltype(Pf)) /  1e9      # effective memory access per second
+    t_it =  t_toc/niter                                      # execution time per iterations [s]
     T_eff = A_eff / t_it
 
     @printf("Time = %1.3f sec, Teff = %1.3f, niter = %d \n", t_toc, T_eff, niter)
