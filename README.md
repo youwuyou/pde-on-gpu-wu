@@ -49,8 +49,8 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 
 | Number | Topic | Finished |
 | --- | --- | --- |
-| Code Exercise 4.1 | Thermal porous convection in 2D |  |
-| Code Exercise 4.2 | Thermal porous convection with implicit temperature update |  |
+| Code Exercise 4.1 | Thermal porous convection in 2D | :heavy_check_mark: |
+| Code Exercise 4.2 | Thermal porous convection with implicit temperature update | :heavy_check_mark: |
 
 
 ### Lecture 5: Parallel computing
