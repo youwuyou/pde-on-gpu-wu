@@ -57,7 +57,7 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 
 | Number | Topic | Finished |
 | --- | --- | --- |
-| Code Exercise 5.1 | Performance implementation: Diffusion 2D |  |
+| Code Exercise 5.1 | Performance implementation: Diffusion 2D | :heavy_check_mark: |
 | Code Exercise 5.2 | Performance evaluation: Diffusion 2D (strong scaling test)  |  |
 | Code Exercise 5.3 | Unit tests |  |
 
