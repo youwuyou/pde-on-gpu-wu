@@ -30,3 +30,40 @@
             qTx       = zeros(Float64, nx + 1, ny)           # 101 x 50
             qTy       = zeros(Float64, nx, ny + 1)           # 100 x 51
         
+
+
+
+            # T 100x50
+            # dTdt  98 x 48
+            # diffT dims=1 99x50
+            # diffT dims=2 100x49
+            # qDx           = zeros(Float64, nx + 1, ny)             # 101 x 50
+            # qDy           = zeros(Float64, nx, ny + 1)             # 100 x 51
+            # qTx           = zeros(nx-1,ny-2)                       # 99 x 48
+            # qTy           = zeros(nx-2,ny-1)                       # 98 x 49   
+            
+            # # 97x48
+            # dTdt[2:end, :]   .= (T[2:end-2,2:end-1] .- T_old[2:end-2,2:end-1])  ./dt .+ (max.(qDx[2:end-3, 2:end-1],0.0) .* diff(T, dims=1)[2:end-1,2:end-1] ./dx) ./ϕ
+            # dTdt[1:end-1,:]  .= (T[1:end-3,2:end-1] .- T_old[1:end-3,2:end-1])  ./dt .+ (max.(qDx[1:end-4, 2:end-1],0.0) .* diff(T, dims=1)[1:end-2,2:end-1] ./dx) ./ϕ
+
+            # # 98x47
+            # dTdt[:,2:end]    .= (T[2:end-1,2:end-2]   .- T_old[2:end-1,2:end-2])  ./dt .+ (max.(qDy[2:end-1,2:end-3],0.0) .* diff(T, dims=2)[2:end-1,2:end-1] ./dy) ./ϕ
+            # dTdt[:,1:end-1]  .= (T[2:end-1,1:end-3]   .- T_old[2:end-1,1:end-3])  ./dt .+ (max.(qDy[2:end-1,1:end-4],0.0) .* diff(T, dims=2)[2:end-1,1:end-2] ./dy) ./ϕ
+            
+            # 97x48
+            # dTdt[2:end, :]   .= (T[2:end-2,2:end-1] .- T_old[2:end-2,2:end-1])  ./dt
+            # dTdt[1:end-1,:]  .= (T[1:end-3,2:end-1] .- T_old[1:end-3,2:end-1])  ./dt
+            # # 98x47
+            # dTdt[:,2:end]    .= (T[2:end-1,2:end-2]   .- T_old[2:end-1,2:end-2])  ./dt
+            # dTdt[:,1:end-1]  .= (T[2:end-1,1:end-3]   .- T_old[2:end-1,1:end-3])  ./dt 
+            
+            
+
+            # # advection term - using upwinding scheme
+            # T[2:end-1,2:end-1] .-= dt./ϕ.*(...)
+
+            # T[2:end,   :] .-= dt .* max.(qDx[2:end-1,:] ./ ϕ, 0.0) .* (diff(T, dims=1)./dx)
+            # T[1:end-1, :] .-= dt .* min.(qDx[1:end-2,:] ./ ϕ, 0.0) .* (diff(T, dims=1)./dx)
+
+            # T[:,   2:end] .-= dt .* max.(qDy[:, 2:end-1] ./ ϕ, 0.0) .* (diff(T, dims=2)./dy)
+            # T[:, 1:end-1] .-= dt .* min.(qDy[:, 1:end-2] ./ ϕ, 0.0) .* (diff(T, dims=2)./dy)

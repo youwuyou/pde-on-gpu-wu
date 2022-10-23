@@ -5,7 +5,9 @@ Lecture 4: Solving elliptic PDEs
                     Task 5    ↔ `porous_convection_2D_quiver.jl`
 
 
-- Code exercise 4.2 ↔ `todo`
+- Code exercise 4.2
+                    Task 1-2 ↔ `porous_convection_implicit_2D.jl`
+                    Task 3   ↔ `ra_experiments.jl`
 
 
 ## Code Exercise 4.1: Thermal porous convection in 2D
@@ -196,16 +198,113 @@ Added terms:
 
 
 
-
+---
 
 
 ## Code Exercise 4.2: Thermal porous convection with implicit temperature update
 
 
-### Task 1:
-
-### Task 2:
+### Task 1 & 2: solve the temperature equations implicitly
 
 
+Following we obtain the result of the implementation
+
+ <img src="./docs/implicit_pressure_temperature_2D_quiver.gif" width="60%">
 
 
+*Problem encountered:*
+
+i). I am not so sure what shall be the right definition of the err_T for the temperature flux, so currently I am not using the criteria `while max(err_D, err_T) >= ϵtol && iter <= maxiter` for the iteration loop. Because the `err_T` I obtain when checking the error is very large. 
+
+ii). Why does the moving "heat ball" that I plotted seems to be 'weaker' than the one in the provided plotting reference?
+
+---
+
+_Did the number of iterations required for convergence change compared to the version with the explicit temperature update?_
+
+
+*Comparison*
+
+| solver type | no.iterations | 
+| implicit `Pr`, explicit `T`| 504448 |
+| implicit `Pr`, implicit `T`| 271936 |
+
+
+
+*Yes.* The number of iterations needed is now halved. But In my case the err_T cannot be correctly compute so the iteration loop cannot be broken when it can be broken already. The condition for the iteration loop I used was `while err_D >= ϵtol && iter <= maxiter`, leaving the `err_D` unused.
+
+But ideally the number of iterations ought to be propotional to `nx`, if the `err_T` is correctly utilized.
+
+
+---
+
+_Why the number of iterations changed the way it changed? Write a sentence about your thoughts on the topic._
+
+
+*Reason of the changes:*  The number of iterations is reduced because the solver type for the temperature flux is now implicit with the pseudo-transient parameters. Also for a better reduction of the no. iterations required, we need to find the optimal pseudo-transient parameter β.
+
+
+
+
+### Task 3: Numerical experiment - Vary the Rayleigh number
+
+We try out the following range of values for the Rayleigh number. Where `nt = 100` is set for each value.
+
+
+
+- Case 1:  `Ra < 40`
+
+Expected:   no convection
+
+Obeservation:  indeed we observe (nearly) no convection for both cases
+
+`Ra == 10`
+
+ <img src="./docs/experiment10.0.gif" width="60%">
+
+
+
+`Ra == 40`
+
+
+ <img src="./docs/experiment40.0.gif" width="60%">
+
+
+
+- Case 2:  `Ra > 40`
+
+Expected:   development of convection
+
+Observation:  we can observe the development of the convection is more significant as the Rayleigh's number gets larger.
+
+`Ra == 100`
+
+ <img src="./docs/experiment100.0.gif" width="60%">
+
+
+
+`Ra == 1000`
+
+ <img src="./docs/experiment1000.0.gif" width="60%">
+
+
+
+
+Question: What is the difference in the results for the different values of Ra, is there an observable trend? Write a comment explaining your observations.
+
+| Rayleigh's number | no.iterations | 
+| 10.0 | 247892 |
+| 40.0| 1144860 |
+| 100.0| 76864 |
+| 1000.0| 55296 |
+
+
+
+- Difference:  
+
+Ra is decisive for the equations to be solved. It decides whether the diffusive effect or the advection effect is more dominant.
+
+
+- Trend:
+
+The trend is observable. The larger the `Ra` is, the more dominant is the convection in the solution equation. 

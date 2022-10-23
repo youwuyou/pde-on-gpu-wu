@@ -57,6 +57,9 @@ default(size=(1300,1000),framestyle=:box,label=false,grid=false,margin=15mm, top
     Xc, Yc    = [x for x=xc, y=yc], [y for x=xc,y=yc]
     Xp, Yp    = Xc[1:st:end,1:st:end], Yc[1:st:end,1:st:end]
 
+    # for estimating no.iterations needed
+    iter_tot = 0
+
     # physical time loop
     anim = @animate for it = 1:nt
         
@@ -78,7 +81,7 @@ default(size=(1300,1000),framestyle=:box,label=false,grid=false,margin=15mm, top
             end
             
             iter += 1
-            
+            iter_tot += 1
         end
         
         # Preparation: for temperature update
@@ -96,7 +99,6 @@ default(size=(1300,1000),framestyle=:box,label=false,grid=false,margin=15mm, top
 
         T[:,   2:end] .-= dt .* max.(qDy[:, 2:end-1] ./ ϕ, 0.0) .* (diff(T, dims=2)./dy)
         T[:, 1:end-1] .-= dt .* min.(qDy[:, 1:end-2] ./ ϕ, 0.0) .* (diff(T, dims=2)./dy)
-    
 
         # boundary conditions
         T[:,1:2]            .=  ΔT/2                                        # upper boundary - heating
@@ -117,8 +119,11 @@ default(size=(1300,1000),framestyle=:box,label=false,grid=false,margin=15mm, top
             display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
         end
 
-        @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
+     #   @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
     end
+
+    print(iter_tot)
+
     # file I/O
     gif(anim, "pressure_temperature_2D_quiver.gif", fps = 50)
 end
