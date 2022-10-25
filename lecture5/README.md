@@ -4,14 +4,13 @@ Lecture 5: Parallel computing
                     `Pf_diffusion_2D_Teff.jl`
                     `Pf_diffusion_2D_Perf.jl`
                     `Pf_diffusion_2D_loop_fun.jl`
-                    
 
 - Code exercise 5.2
                     Task 1 - ↔ `.jl`
 
 
 - Code exercise 5.3
-                    Task 1 -  ↔ `.jl`
+                    Task 1 -  ↔ `Pf_diffusion_2D_Test.jl`
                    
 
 ## Code Exercise 5.1: Performance implementation: Diffusion 2D
@@ -95,6 +94,34 @@ Time = 0.000 sec, Teff = 28.966, niter = 1
 
 ## Code Exercise 5.3: Unit test
 
+In the following exercise we changed the function signature to `function Pf_diffusion_2D(nx_, ny_;do_check=false)` in order to perform unit tests more practically.
+
+Besides of that we added the testing parameters as followed right above the iteration loop
+
+```
+    # testing
+    xtest = [5, Int(cld(0.6*lx, dx)), nx-10]
+    ytest = Int(cld(0.5*ly, dy))
+```
+
+At the end we want the function to have selected return values depending on the entries given by `xtest`, `ytest` arrays.
+
+```
+    return Pf[xtest, ytest]
+
+```
+
+
+The definition of the testset is straight forward. The only thing we need to pay attention to is the type matching between the return type and the values to be compared. Thus we reshaped the return values of the function, after this we are able to do direct comparison between the values using '≈'.
+
+ Our testset has the following output with `do_check = false` and `atol = 1e-9` set.
+
+```bash
+julia> include("Pf_diffusion_2D_Test.jl")
+Test Summary:         | Pass  Total  Time
+Diffusion Acoustic 2D |    4      4  0.7s
+Test.DefaultTestSet("Diffusion Acoustic 2D", Any[], 4, false, false, true, 1.666726258251579e9, 1.666726258966965e9)
+```
 
 
 ---

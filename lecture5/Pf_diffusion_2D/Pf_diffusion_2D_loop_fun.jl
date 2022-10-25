@@ -45,13 +45,16 @@ function compute!(Pf, qDx, qDy, _dx_β_dτ, _dy_β_dτ, k_ηf_dx, k_ηf_dy, _1_�
 end
 
 
-function Pf_diffusion_2D()
+function Pf_diffusion_2D(;do_check=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
    
     # numerics
     nx,ny   = 1*511, 1*511
+    ϵtol    = 1e-8
+    maxiter = 100                                #max(nx,ny)
+    ncheck  = ceil(Int,0.25max(nx,ny))
     cfl     = 1.0/sqrt(2.1)
     re      = 2π
    
@@ -72,9 +75,24 @@ function Pf_diffusion_2D()
     _dy_β_dτ = 1.0 / dy / β_dτ
   
     # iteration loop
-    niter = 1
-    t_toc = @belapsed compute!($Pf, $qDx, $qDy, $_dx_β_dτ, $_dy_β_dτ, $k_ηf_dx, $k_ηf_dy, $_1_θ_dτ)
+    iter = 1; err_Pf = 2ϵtol
+    t_tic = 0.0; niter = 0
 
+    while err_Pf >= ϵtol && iter <= maxiter
+        if iter == 11 t_tic = Base.time(); niter=0; end
+
+        compute!(Pf, qDx, qDy, _dx_β_dτ, _dy_β_dτ, k_ηf_dx, k_ηf_dy, _1_θ_dτ)
+
+        if do_check && (iter%ncheck == 0)
+            r_Pf  .= diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy
+            err_Pf = maximum(abs.(r_Pf))
+            @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
+            display(heatmap(xc,yc,Pf';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
+        end
+        iter += 1; niter +=1
+    end
+
+    t_toc = Base.time() - t_tic
     A_eff = 3 * 2 * nx * ny * sizeof(eltype(Pf)) /  1e9   # effective memory access per second
     t_it  =  t_toc/niter                                  # execution time per iterations [s]
     T_eff = A_eff / t_it
