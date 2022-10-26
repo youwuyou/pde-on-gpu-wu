@@ -88,7 +88,7 @@ function Pf_diffusion_2D(nx_, ny_;do_check=false)
     ytest = Int(cld(0.5*ly, dy))
 
     while err_Pf >= ϵtol && iter <= maxiter
-       
+
         compute!(Pf, qDx, qDy, _dx_β_dτ, _dy_β_dτ, k_ηf_dx, k_ηf_dy, _1_θ_dτ)
 
         if do_check && iter%ncheck == 0
@@ -98,6 +98,8 @@ function Pf_diffusion_2D(nx_, ny_;do_check=false)
         end
         iter += 1
     end
+    t_toc = Base.time() - t_tic
+
 
     return Pf[xtest, ytest]
 end

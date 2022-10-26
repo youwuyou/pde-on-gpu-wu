@@ -88,6 +88,66 @@ Time = 0.000 sec, Teff = 28.966, niter = 1
 ## Code Exercise 5.2: Performance evaluation: Diffusion 2D (strong scaling test)
 
 
+### Task 1: memcopy implementation
+
+
+
+*Case 1: btool version*
+
+```bash
+julia> include("memcopy.jl")
+Array based:  Time = 0.000 sec, Teff = 70.798, niter = 1 
+Kernel based:  Time = 0.000 sec, Teff = 70.860, niter = 1 
+```
+
+*Case 2: Loop version*
+
+```bash
+julia> include("memcopy.jl")
+Array based:  Time = 1.803 sec, Teff = 69.778, niter = 20000 
+Kernel based:  Time = 1.807 sec, Teff = 69.643, niter = 20000 
+```
+
+
+### Task 2: Finding out $T_peak$
+
+Under the assumption that the $T_eff \approx T_peak$, we called the implemented `memcopy()` using a wrapper function with the signature `function mem_throughput(; start_at_two = true)`, where the `start_at_two` is optional if one wants to start from `nx = 2` till `nx = 4096`
+
+
+
+
+#### Performance Analysis
+
+ <img src="./docs/memcopy_btool.png" width="60%">
+
+The resulting plot shows the effective memory grows linearly until the maximal effective (peak) memory is reached, and then the plot decays linearly, where we can see another local maximum alongside.
+
+The best value of `memcopy()` obtained using the manual loop-based approach (manual timer) to assess T_\mathrm{peak}T peak is indicated in the plot.
+
+The announced peak memory bandwidth is 64GB/S according to the vendor [intel](https://ark.intel.com/content/www/us/en/ark/products/132228/intel-core-i712700h-processor-24m-cache-up-to-4-70-ghz.html). Using the plot we can see that the measured peak performance is *66 GB/s*, which can be reached with a domain with $nx \times ny = 32 \times 32 = 1024$ values (i.e. 8192 Byte = 65.536 KB).
+
+Using `lstopo` we obtain the following hardware topology of our CPU.
+
+ <img src="./docs/lstopo.png" width="60%">
+
+
+Notably the size of the L1d cache is 48KB, we thus assume that the peak memory is reached where the L1d cache gets fully utilized. The existence of the L2 and L3 caches may be one of the reasons why another local maximum exists. After the caches get filled, the effective memory starts to get reduced since the data has to be fetched from the RAM.
+
+
+The above analysis is based on the btool version of the benchmark. The loop-based version provides a similar plot but the first values are missing because the warm-up iterations are not considered in our plot.
+
+ <img src="./docs/memcopy_loop.png" width="60%">
+
+
+---
+
+_Side-Note:_ Is there any way to have a semilog plot where the x-axis can scale where base = 2? I tried to set `xscale= :log2` but it showed me:
+
+```bash
+┌ Warning: scale log2 is unsupported with Plots.GRBackend().  Choose from: [:identity, :log10]
+└ @ Plots ~/.julia/packages/Plots/530RA/src/args.jl:1677
+```
+
 
 
 ---
