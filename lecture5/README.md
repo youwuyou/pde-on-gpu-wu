@@ -6,7 +6,7 @@ Lecture 5: Parallel computing
                     `Pf_diffusion_2D_loop_fun.jl`
 
 - Code exercise 5.2
-                    Task 1 - ↔ `.jl`
+                    Task 1 - 2 ↔ `memcopy.jl`
 
 
 - Code exercise 5.3
@@ -109,9 +109,9 @@ Kernel based:  Time = 1.807 sec, Teff = 69.643, niter = 20000
 ```
 
 
-### Task 2: Finding out $T_peak$
+### Task 2: Finding out $T_\text{peak}$
 
-Under the assumption that the $T_eff \approx T_peak$, we called the implemented `memcopy()` using a wrapper function with the signature `function mem_throughput(; start_at_two = true)`, where the `start_at_two` is optional if one wants to start from `nx = 2` till `nx = 4096`
+Under the assumption that the $T_\text{eff} \approx T_\text{peak}$, we called the implemented `memcopy()` using a wrapper function with the signature `function mem_throughput(; start_at_two = true)`, where the `start_at_two` is optional if one wants to start from `nx = 2` till `nx = 4096`
 
 
 
@@ -128,7 +128,7 @@ The announced peak memory bandwidth is 64GB/S according to the vendor [intel](ht
 
 Using `lstopo` we obtain the following hardware topology of our CPU.
 
- <img src="./docs/lstopo.png" width="60%">
+ <img src="./docs/lstopo.png" width="90%">
 
 
 Notably the size of the L1d cache is 48KB, we thus assume that the peak memory is reached where the L1d cache gets fully utilized. The existence of the L2 and L3 caches may be one of the reasons why another local maximum exists. After the caches get filled, the effective memory starts to get reduced since the data has to be fetched from the RAM.
