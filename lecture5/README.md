@@ -121,13 +121,12 @@ Under the assumption that the $T_\text{eff} \approx T_\text{peak}$, we called th
 
  <img src="./docs/memcopy_btool.png" width="60%">
 
-The resulting plot shows the effective memory grows linearly until the maximal effective (peak) memory is reached, and then the plot decays linearly, where we can see another local maximum alongside.
+The resulting plot shows the effective memory grows linearly until the maximal effective (peak) memory is reached, and then the plot decays linearly, where we can see another local maximum alongside. The best value of `memcopy()` obtained using the manual loop-based approach (manual timer) to assess T_\mathrm{peak}T peak is indicated in the plot.
 
-The best value of `memcopy()` obtained using the manual loop-based approach (manual timer) to assess T_\mathrm{peak}T peak is indicated in the plot.
 
 The announced peak memory bandwidth is 64GB/S according to the vendor [intel](https://ark.intel.com/content/www/us/en/ark/products/132228/intel-core-i712700h-processor-24m-cache-up-to-4-70-ghz.html). Using the plot we can see that the measured peak performance is *66 GB/s*, which can be reached with a domain with $nx \times ny = 32 \times 32 = 1024$ values (i.e. 8192 Byte = 65.536 KB).
 
-Using `lstopo` we obtain the following hardware topology of our CPU.
+In order to understand the measured data better, we need to know our CPU better. Using `lstopo`, we can obtain the following hardware topology of our CPU.
 
  <img src="./docs/lstopo.png" width="90%">
 
@@ -135,10 +134,9 @@ Using `lstopo` we obtain the following hardware topology of our CPU.
 Notably the size of the L1d cache is 48KB, we thus assume that the peak memory is reached where the L1d cache gets fully utilized. The existence of the L2 and L3 caches may be one of the reasons why another local maximum exists. After the caches get filled, the effective memory starts to get reduced since the data has to be fetched from the RAM.
 
 
-The above analysis is based on the btool version of the benchmark. The loop-based version provides a similar plot but the first values are missing because the warm-up iterations are not considered in our plot.
+NOTE: The above analysis is based on the btool version of the benchmark. The loop-based version provides a similar plot but the first values are missing because the warm-up iterations are not considered in our plot.
 
  <img src="./docs/memcopy_loop.png" width="60%">
-
 
 ---
 
@@ -148,6 +146,7 @@ _Side-Note:_ Is there any way to have a semilog plot where the x-axis can scale 
 ┌ Warning: scale log2 is unsupported with Plots.GRBackend().  Choose from: [:identity, :log10]
 └ @ Plots ~/.julia/packages/Plots/530RA/src/args.jl:1677
 ```
+---
 
 
 ### Task 3: Strong scaling test for Pf_diffusion function
@@ -155,18 +154,20 @@ _Side-Note:_ Is there any way to have a semilog plot where the x-axis can scale 
 We use the similar scheme for benchmarking the 3 different `Pf_diffusion_2D_*` functions, but with the modification of the code that we:
 
 i). include the jl scripts in our benchmarking script
+
 ii). add one additional `T_eff_3 = []` array for the additional function
 
-Also we need to modify the formula of the effective memory $A_\text{eff}$, since all three arrays `Pf`, `qDx`, `qDy` need to be updated each time.
+
+Also we modified the formula of the effective memory $A_\text{eff}$, since all three arrays `Pf`, `qDx`, `qDy` need to be updated each time.
 
 
-Due to limited time before the deadline, the modifications that I still have to perform are not done. Which are
+---
+
+*Side-Note:* Due to limited time before the deadline, the modifications that I still have to perform are not done. Which are
 
 1). remove the existing benchmarking within the 3 methods as mentioned above
 
 2). plot the result
-
-
 
 
 
