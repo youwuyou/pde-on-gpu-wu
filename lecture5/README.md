@@ -7,6 +7,7 @@ Lecture 5: Parallel computing
 
 - Code exercise 5.2
                     Task 1 - 2 ↔ `memcopy.jl`
+                    Task 2     ↔ `Pf_diffusion_benchmark.jl`
 
 
 - Code exercise 5.3
@@ -147,6 +148,25 @@ _Side-Note:_ Is there any way to have a semilog plot where the x-axis can scale 
 ┌ Warning: scale log2 is unsupported with Plots.GRBackend().  Choose from: [:identity, :log10]
 └ @ Plots ~/.julia/packages/Plots/530RA/src/args.jl:1677
 ```
+
+
+### Task 3: Strong scaling test for Pf_diffusion function
+
+We use the similar scheme for benchmarking the 3 different `Pf_diffusion_2D_*` functions, but with the modification of the code that we:
+
+i). include the jl scripts in our benchmarking script
+ii). add one additional `T_eff_3 = []` array for the additional function
+
+Also we need to modify the formula of the effective memory $A_\text{eff}$, since all three arrays `Pf`, `qDx`, `qDy` need to be updated each time.
+
+
+Due to limited time before the deadline, the modifications that I still have to perform are not done. Which are
+
+1). remove the existing benchmarking within the 3 methods as mentioned above
+
+2). plot the result
+
+
 
 
 

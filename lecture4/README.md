@@ -1,4 +1,4 @@
-Lecture 4: Solving elliptic PDEs
+Lecture 4: Porous convection
 
 - Code exercise 4.1 
                     Task 1-4  ↔ `porous_convection_2D_heatmap.jl`

@@ -1,15 +1,15 @@
 using Plots,Plots.Measures,Printf
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
-function Pf_diffusion_2D(;do_check=false)
+function Pf_diffusion_2D_Teff(nx_, ny_;do_check=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
    
     # numerics
-    nx,ny   = 2047,2047
+    nx,ny   = nx_, ny_                                 # testing using 2047
     ϵtol    = 1e-8
-    maxiter = 100                                      #max(nx,ny)
+    maxiter = 100                                   
     ncheck  = ceil(Int,0.25max(nx,ny))
     cfl     = 1.0/sqrt(2.1)
     re      = 2π
@@ -51,9 +51,10 @@ function Pf_diffusion_2D(;do_check=false)
     t_it =  t_toc/niter                                  # execution time per iterations [s]
     T_eff = A_eff / t_it
 
-    @printf("Time = %1.3f sec, Teff = %1.3f, niter = %d \n", t_toc, T_eff, niter)
+    if do_check 
+        @printf("Time = %1.3f sec, Teff = %1.3f, niter = %d \n", t_toc, T_eff, niter) 
+    end
 
     return
 end
 
-Pf_diffusion_2D()
