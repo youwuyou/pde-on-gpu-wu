@@ -14,8 +14,8 @@ end;
 # reference test
 @testset "reference test: diffusion" begin
      using JLD
-     C_ref = load("../test/C_ref.jld")
-     qx_ref = load("../test/qx_ref.jld")
+     C_ref = load("C_ref.jld")["data"]
+     qx_ref = load("qx_ref.jld")["data"]
 
      C, qx = diffusion_1D()
 
@@ -24,7 +24,7 @@ end;
      I = sample(1:length(qx), 20, replace=false)
 
      @testset "randomly chosen entries $i" for i in I
-        @test C[i]  == C_ref[i]
+	@test C[i] == C_ref[i]
         @test qx[i] == qx_ref[i]
      end
 end;

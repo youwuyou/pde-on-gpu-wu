@@ -17,8 +17,8 @@ function diffusion_1D()
     qx   = zeros(Float64, nx-1)
     # time loop
     for it = 1:nt
-        qx          .= .-dc.*diff(C )./dx
-        C[2:end-1] .-=   dt.*diff(qx)./dx
+        qx          .= .-dc.* Diff(C )./dx
+        C[2:end-1] .-=   dt.* Diff(qx)./dx
     end
     return [C, qx]
 end
