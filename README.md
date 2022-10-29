@@ -67,7 +67,7 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | --- | --- | --- |
 | Code Exercise 6.1 | Data transfer optimisations |  |
 | Code Exercise 6.2 | Solving PDEs on GPUs |  |
-| Code Exercise 6.3 | Unit and reference tests |  |
+| Code Exercise 6.3 | Unit and reference tests | :heavy_check_mark: |
 
 
 
