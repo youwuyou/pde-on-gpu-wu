@@ -39,7 +39,7 @@ function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
     return nothing
 end
 
-function Pf_diffusion_2D(;do_check=false)
+function Pf_diffusion_2D_cpu(;do_check=true, test=true)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
@@ -90,9 +90,14 @@ function Pf_diffusion_2D(;do_check=false)
     T_eff = A_eff / t_it                               # Effective memory throughput [GB/s]
     
  #   @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
+    if test == true
+        @printf("niter = %1.3d", niter) 
+        save("../test/Pf_ref_127.jld", "data", Pf)
+    end 
+ 
     return Pf
 end
 
 if isinteractive()
-    Pf_diffusion_2D(do_check=false)
+    Pf_diffusion_2D_cpu(do_check=true, test=true)
 end
