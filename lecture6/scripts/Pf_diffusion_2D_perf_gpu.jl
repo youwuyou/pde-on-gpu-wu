@@ -1,46 +1,74 @@
-using Plots,Plots.Measures,Printf
-default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
+using CUDA
+collect(devices())   # see avaliable GPUs
+device!(0)           # assign to one GPU
 
+# using Plots,Plots.Measures,Printf
+# default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy] )) end
 macro d_ya(A)  esc(:( $A[ix,iy+1]-$A[ix,iy] )) end
 
+# compute flux update
 function compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
     nx,ny=size(Pf)
-    Threads.@threads for iy=1:ny
-    # for iy=1:ny
-        for ix=1:nx-1
-            qDx[ix+1,iy] -= (qDx[ix+1,iy] + k_ηf_dx*@d_xa(Pf))*_1_θ_dτ
-        end
+    ix = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+    iy = (blockIdx().y - 1) * blockDim().y + threadIdx().y
+    
+    # manual bound checking
+    if(ix <= nx-1 && iy <= ny)
+        qDx[ix+1,iy] -= (qDx[ix+1,iy] + k_ηf_dx * @d_xa(Pf))*_1_θ_dτ
     end
-    Threads.@threads for iy=1:ny-1
-    # for iy=1:ny-1
-        for ix=1:nx
-            qDy[ix,iy+1] -= (qDy[ix,iy+1] + k_ηf_dy*@d_ya(Pf))*_1_θ_dτ
-        end
+
+    if(ix <= nx && iy <= ny-1)
+        qDy[ix,iy+1] -= (qDy[ix,iy+1] + k_ηf_dy * @d_ya(Pf))*_1_θ_dτ
     end
+
     return nothing
 end
 
+# compute pressure update
 function update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
     nx,ny=size(Pf)
-    Threads.@threads for iy=1:ny
-    # for iy=1:ny
-        for ix=1:nx
-            Pf[ix,iy]  -= (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy)*_β_dτ
-        end
+    ix = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+    iy = (blockIdx().y - 1) * blockDim().y + threadIdx().y
+
+    if (ix <= nx && iy <= ny)
+        Pf[ix,iy]  -= (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy)*_β_dτ
     end
+
     return nothing
 end
 
-function Pf_diffusion_2D(;do_check=false)
+
+# computation function that gets called
+function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
+
+    compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
+    update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
+
+    return nothing
+end
+
+function Pf_diffusion_2D_gpu(;do_check=false, test=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
   
     # numerics
-    nx,ny   = 511,511
+    threads = (32,16)
+    
+    if test == false
+        blocks  = (512,1024)
+        nx      = threads[1] * blocks[1]
+        ny      = threads[2] * blocks[2]
+        maxiter = max(nx,ny)
+    else
+        # perform testing case for small domain size
+        nx, ny  = 127, 127
+        blocks  = (nx÷threads[1], ny÷threads[2])
+        maxiter = 50
+    end
+
     ϵtol    = 1e-8
-    maxiter = max(nx,ny)
     ncheck  = ceil(Int,0.25max(nx,ny))
     cfl     = 1.0/sqrt(2.1)
     re      = 2π
@@ -56,35 +84,64 @@ function Pf_diffusion_2D(;do_check=false)
     k_ηf_dx,k_ηf_dy = k_ηf/dx,k_ηf/dy
     
     # array initialisation
-    Pf      = @. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2)
-    qDx,qDy = zeros(Float64, nx+1,ny),zeros(Float64, nx,ny+1)
-    r_Pf    = zeros(nx,ny)
+    Pf      = CuArray(@. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2))
+    qDx,qDy = CuArray(zeros(Float64, nx+1,ny)), CuArray(zeros(Float64, nx,ny+1))
+    r_Pf    = CuArray(zeros(nx,ny))
     
     # iteration loop
     iter = 1; err_Pf = 2ϵtol
     t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         if (iter==11) t_tic = Base.time(); niter = 0 end
-      
-        compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
-        update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
+        
+        @cuda blocks=blocks threads=threads compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
+        synchronize()
       
         if do_check && (iter%ncheck == 0)
-            r_Pf  .= diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy
+            r_Pf  .= diff(qDx, dims=1)./dx .+ diff(qDy, dims=2)./dy
             err_Pf = maximum(abs.(r_Pf))
-            @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
-            display(heatmap(xc,yc,Pf';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
+           # @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
+            # display(heatmap(xc,yc,Pf';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
         end
         iter += 1; niter += 1
     end
     
     t_toc = Base.time() - t_tic
-    A_eff = (3*2)/1e9*nx*ny*sizeof(Float64)  # Effective main memory access per iteration [GB]
-    t_it  = t_toc/niter                      # Execution time per iteration [s]
-    T_eff = A_eff/t_it                       # Effective memory throughput [GB/s]
+    A_eff = (3 * 2) / 1e9 * nx * ny * sizeof(Float64)  # Effective main memory access per iteration [GB]
+    t_it  = t_toc / niter                              # Execution time per iteration [s]
+    T_eff = A_eff / t_it                               # Effective memory throughput [GB/s]
     
-    @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
-    return
+   # @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
+    return Pf
 end
 
-Pf_diffusion_2D(do_check=false)
+if isinteractive()
+    Pf_diffusion_2D_gpu(do_check=true, test=true)
+end
+
+
+
+# reference test using nx=ny=127, maxiter = 50
+using Test
+@testset "reference test: 2D diffusion" begin
+    using JLD
+    Pf_ref = load("../test/Pf_ref_127.jld")["data"]   # cpu version
+    Pf     = Array(Pf_diffusion_2D_gpu())             # gpu version
+
+    # choose indices to test
+    using StatsBase
+    tuple = size(Pf)
+    I = sample(1:tuple[1], 20, replace=false)
+    J = sample(1:tuple[2], 20, replace=false)
+
+    entries = []
+    for i = 1:20
+        append(entries, (I[i], J[i]))
+    end
+
+    @testset "randomly chosen entries $i" for e in entries
+       @test Pf[e[1],e[2]] ≈ Pf_ref[e[1],e[2]]
+    end
+end;
+
+
