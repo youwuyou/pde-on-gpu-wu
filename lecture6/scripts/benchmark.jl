@@ -39,9 +39,9 @@ end
 
 
 # computation function that gets called
-function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
-    @cuda compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ); synchronize()
-    @cuda update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ); synchronize()
+function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ, blocks, threads)
+    @cuda blocks=blocks threads=threads compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ); synchronize()
+    @cuda blocks=blocks threads=threads update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ); synchronize()
     return nothing
 end
 
@@ -85,8 +85,8 @@ function Pf_diffusion_2D_gpu(nx_, ny_ ;do_check=false)
     while err_Pf >= ϵtol && iter <= maxiter
         if (iter==11) t_tic = Base.time(); niter = 0 end
         
-        compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
-              
+        compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ, blocks, threads)
+
         if do_check && (iter%ncheck == 0)
             r_Pf  .= diff(qDx, dims=1)./dx .+ diff(qDy, dims=2)./dy
             err_Pf = maximum(abs.(r_Pf))

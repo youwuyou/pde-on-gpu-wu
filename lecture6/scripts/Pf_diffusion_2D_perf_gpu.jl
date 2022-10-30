@@ -41,7 +41,7 @@ end
 function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
     
     @cuda blocks=blocks threads=threads compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ); synchronize()
-    @cuda update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ); synchronize()
+    @cuda blocks=blocks threads=threads update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ); synchronize()
     return nothing
 end
 

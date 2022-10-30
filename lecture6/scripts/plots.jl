@@ -1,14 +1,12 @@
 using Plots, JLD
 
-
-
 # obtain the data
 nx = load("nx.jld")["data"]
 T_eff_list = load("T_eff_list.jld")["data"]
 
 
 # plot
-plot(nx, T_eff_list;  label=["Diffusion 2D"], title="Pf_diffusion_2D_gpu() using loop")
+plot(nx, T_eff_list; label=["Diffusion 2D"], title="Pf_diffusion_2D_gpu() using loop")
 
 
 # plot reference line for the peak memory
