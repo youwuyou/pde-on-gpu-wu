@@ -125,10 +125,7 @@ function mem_throughput(; start_at_two = false)
 
     T_eff_list = []
     temp = []
-
-    # general plotting feature
-    plot(xlims=(nx[1], nx[end]), xscale= :log10, xlabel="nx", ylabel="Teff  [GB/s]" )
-    
+ 
     for i in ny
             temp = Pf_diffusion_2D_gpu(i, i;do_check=false)
             append!(T_eff_list, temp)
