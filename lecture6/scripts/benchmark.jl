@@ -1,4 +1,4 @@
-using BenchmarkTools, Printf, Plots, JLD
+using BenchmarkTools, Printf, JLD
 using CUDA
 collect(devices())   # see avaliable GPUs
 device!(0)           # assign to one GPU
@@ -45,7 +45,7 @@ function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
     return nothing
 end
 
-function Pf_diffusion_2D_gpu(nx_, ny_ ;do_check=true)
+function Pf_diffusion_2D_gpu(nx_, ny_ ;do_check=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
@@ -94,11 +94,17 @@ function Pf_diffusion_2D_gpu(nx_, ny_ ;do_check=true)
         end
         iter += 1; niter += 1
     end
-    
+        
     t_toc = Base.time() - t_tic
     A_eff = (3 * 2) / 1e9 * nx * ny * sizeof(Float64)  # Effective main memory access per iteration [GB]
     t_it  = t_toc / niter                              # Execution time per iteration [s]
     T_eff = A_eff / t_it                               # Effective memory throughput [GB/s]
+
+    # free the memory
+    CUDA.unsafe_free!(Pf)
+    CUDA.unsafe_free!(qDx)
+    CUDA.unsafe_free!(qDy)
+    CUDA.unsafe_free!(r_Pf)
     
    return T_eff
 end
@@ -112,11 +118,10 @@ function mem_throughput(; start_at_two = false)
 
     # optional parameters to have test size starting at nx == 2
     if start_at_two
-            nx = ny = 2 * 2 .^ (0:11)
+        nx = ny = 2 * 2 .^ (0:11)
     else
         nx = ny = 32 .* 2 .^ (0:8) .- 1
     end
-
 
     T_eff_list = []
     temp = []
@@ -125,7 +130,7 @@ function mem_throughput(; start_at_two = false)
     plot(xlims=(nx[1], nx[end]), xscale= :log10, xlabel="nx", ylabel="Teff  [GB/s]" )
     
     for i in ny
-            temp = Pf_diffusion_2D_gpu(i, i;do_check=true)
+            temp = Pf_diffusion_2D_gpu(i, i;do_check=false)
             append!(T_eff_list, temp)
     end
 

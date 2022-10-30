@@ -110,6 +110,12 @@ function Pf_diffusion_2D_gpu(;do_check=true, test=true)
         save("../test/Pf_127.jld", "data", Pf)
    end
 
+    # free the memory
+    CUDA.unsafe_free!(Pf)
+    CUDA.unsafe_free!(qDx)
+    CUDA.unsafe_free!(qDy)
+    CUDA.unsafe_free!(r_Pf)
+
    return Pf
 end
 
