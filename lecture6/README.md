@@ -15,20 +15,60 @@ Lecture 6: GPU computing
 
 ## Code Exercise 6.1: Data transfer optimisations
 
-### Task 1: 
+### Task 1:  unoptimized array programming function
 
-### Task 2: 
+- benchmarked the array programming based 2D diffusion
 
-### Task 3:
+### Task 2 & 3: single array programming statement
 
-### Task 4: 
+- mathematically transformed the formulation of the temperature update
 
-### Task 5: 
+- removed redundant arrays both in the main as well as in the stepping function
 
-### Task 6: 
+- changed the stepping to a function with only a single statement
 
-### Task 7: 
+- benchmarked the single-statement function
 
+*Expected speedup:* 2
+
+*obtained speedup:* 0.65
+
+
+=> somehow the speedup measured here is wrong, we expected a speedup of 2 but the measured time in task 1 seems to be pretty good. Assumption is that the array size we tried is probably not large enough and the synchronization time needed for task 2's function brings the overhead.
+
+### Task 4 & 5: CUDA kernel based programming
+
+- changed the fused kernel function by using CUDA arrays
+
+- performed manual range checking for the kernel function
+
+*Expected speedup:* 5
+
+*obtained speedup:* 4.75
+
+=> The implementation shall be correct.
+
+
+### Task 6: Using new metrics
+
+- used the new metrics "Effective memory throughput" for the measurement of the speedup in task 7
+
+=> obtained speedup for both task 3 and 5 are not as expected (proportional)
+
+
+
+### Task 7: Report the measured $T_\text{eff}$ and $T_\text{Peak}
+
+Given the information from the vendor that $T_\text{Peak} = 732 GB/s$, we obtained $T_\text{eff} = 704.8 GB/s$
+
+The resulting quotient is:
+
+```bash
+T_eff / T_peak = 0.9628638014096739
+0.9628638014096739
+```
+
+*Result:*  As seen in the result, we are already pretty close to the peak memory but there is still a 8%-off difference. The peak memory is rather theoretical and cannot be reached that closely in the reality. 
 
 
 ## Code Exercise 6.2: Solving PDEs on GPUs 
