@@ -1,13 +1,13 @@
 Lecture 6: GPU computing
 
 - Code exercise 6.1
-                    `l6_1-gpu-memcopy.ipynb`
+                    `notebook/l6_1-gpu-memcopy.ipynb`
 
 
 - Code exercise 6.2
-                    Task 1,2   ↔ `Pf_diffusion_2D_perf_gpu.jl`
-                    Task 3     ↔ `readwrite_triad_KP_2D.jl`
-                    Task 4     ↔ `benchmark.jl`
+                    Task 1,2   ↔ `scripts/Pf_diffusion_2D_perf_gpu.jl`
+                    Task 3     ↔ `scripts/readwrite_triad_KP_2D.jl`
+                    Task 4     ↔ `scripts/benchmark.jl`
 
 
 - Code exercise 6.3
@@ -208,23 +208,26 @@ Max thread number = 1024
 ### Task 4: Plotting memory throughput
 
 
-#### todo: for the 2D fluid pressure diffusion GPU code 
+#### Performance of the 2D fluid pressure diffusion GPU code 
+
+*Result* 
+
+ <img src="./docs/weak_scaling_2D_fluid.png" width="60%">
+
 
 *Peak memory throughput used:*
 
 $T_\text{peak} = 765.2 GB/s$
 
-```
-Report in a figure the effective memory throughput $T_\text{eff}$ as function of number of grid points nx = ny. 
+
+*Obtained effective memory from 2D fluid pressure* 
+
+$T_\text{eff} = 328.1 GB/s$
 
 
-Realise a weak scaling benchmark varying nx = ny = 32 .* 2 .^ (0:8) .- 1 (or until you run out of device memory). 
+As we can see, the obtained memory throughput of the code is far from the peak memory throughput. This fits our expectation, as the code itself is not yet optimized. It is a similar result as the one we obtained on P100 for exercise 1 before we removed the fluxes and only used the temperature update.
 
-Peak memory is reported as a horizontal line
-
-Small comment about the finding
-
-```
+We could have computed the fluxes on-the-fly and get a 2x-speedup.
 
 
 
