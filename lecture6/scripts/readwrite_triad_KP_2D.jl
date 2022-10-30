@@ -15,14 +15,14 @@ end
 collect(devices())
 
 # assign no more than one user per GPU
-device!(1)   # select a GPU between 0-7
+device!(0)   
 
 # using best nx=ny found on racklette
 nx = ny = 16384
 
-A = CUDA.zeros(Float64, nx, ny);
-B = CUDA.rand(Float64, nx, ny);
-C = CUDA.rand(Float64, nx, ny);
+A = CUDA.zeros(nx, ny);
+B = CUDA.rand(nx, ny);
+C = CUDA.rand(nx, ny);
 s = rand()
 
 # finding out best thread number

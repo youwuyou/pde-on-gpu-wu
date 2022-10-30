@@ -5,8 +5,9 @@ Lecture 6: GPU computing
 
 
 - Code exercise 6.2
-                    Task 1,2,4 ↔ `Pf_diffusion_2D_perf_gpu.jl`
+                    Task 1,2   ↔ `Pf_diffusion_2D_perf_gpu.jl`
                     Task 3     ↔ `readwrite_triad_KP_2D.jl`
+                    Task 4     ↔ `benchmark.jl`
 
 
 - Code exercise 6.3
