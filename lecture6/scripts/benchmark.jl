@@ -1,4 +1,4 @@
-using BenchmarkTools, Printf, Plots
+using BenchmarkTools, Printf, Plots, JLD
 using CUDA
 collect(devices())   # see avaliable GPUs
 device!(0)           # assign to one GPU
@@ -128,16 +128,10 @@ function mem_throughput(; start_at_two = false)
             temp = Pf_diffusion_2D_gpu(i, i;do_check=true)
             append!(T_eff_list, temp)
     end
-    
-    plot(nx, T_eff_list; xscale= :log10, label=["2D fluid pressure diffusion"], title="Pf_diffusion_2D_gpu() using BenchmarkTools.jl")
 
-    # plot reference line for the peak memory
-    tuple = findmax(T_eff_list)
-    hline!([765.2], color=:green, label="Peak memory (Task 3)")
-    hline!([tuple[1]], color=:orange, label="Peak memory (Task 4)")
-    
-    # save figure
-    savefig("WeakScaling_Diffusion2D.png")
+    # store the data for later plotting    
+    save("nx.jld", "data", nx)
+    save("T_eff_list.jld", "data", T_eff_list)
 
 end
 
