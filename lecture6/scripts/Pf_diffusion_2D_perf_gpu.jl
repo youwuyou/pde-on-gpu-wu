@@ -1,4 +1,4 @@
-using CUDA
+using CUDA, Printf, Test, JLD
 collect(devices())   # see avaliable GPUs
 device!(0)           # assign to one GPU
 
@@ -41,14 +41,12 @@ end
 
 # computation function that gets called
 function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
-
     compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
     update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
-
     return nothing
 end
 
-function Pf_diffusion_2D_gpu(;do_check=false, test=false)
+function Pf_diffusion_2D_gpu(;do_check=true, test=true)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
@@ -64,7 +62,8 @@ function Pf_diffusion_2D_gpu(;do_check=false, test=false)
     else
         # perform testing case for small domain size
         nx, ny  = 127, 127
-        blocks  = (nx÷threads[1], ny÷threads[2])
+        blocks  = (Int(ceil(nx/threads[1])), Int(ceil(ny/threads[2])))
+        print(blocks)
         maxiter = 50
     end
 
@@ -86,7 +85,7 @@ function Pf_diffusion_2D_gpu(;do_check=false, test=false)
     # array initialisation
     Pf      = CuArray(@. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2))
     qDx,qDy = CuArray(zeros(Float64, nx+1,ny)), CuArray(zeros(Float64, nx,ny+1))
-    r_Pf    = CuArray(zeros(nx,ny))
+    r_Pf    = CuArray(zeros(Float64, nx,ny))
     
     # iteration loop
     iter = 1; err_Pf = 2ϵtol
@@ -111,8 +110,14 @@ function Pf_diffusion_2D_gpu(;do_check=false, test=false)
     t_it  = t_toc / niter                              # Execution time per iteration [s]
     T_eff = A_eff / t_it                               # Effective memory throughput [GB/s]
     
-   # @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
-    return Pf
+   # @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)   
+   if test == true
+        save("../test/Pf_127.jld", "data", Pf)
+        # @printf("niter = %1.3d", niter)
+   
+   end
+
+   return Pf
 end
 
 if isinteractive()
@@ -121,27 +126,5 @@ end
 
 
 
-# reference test using nx=ny=127, maxiter = 50
-using Test
-@testset "reference test: 2D diffusion" begin
-    using JLD
-    Pf_ref = load("../test/Pf_ref_127.jld")["data"]   # cpu version
-    Pf     = Array(Pf_diffusion_2D_gpu())             # gpu version
-
-    # choose indices to test
-    using StatsBase
-    tuple = size(Pf)
-    I = sample(1:tuple[1], 20, replace=false)
-    J = sample(1:tuple[2], 20, replace=false)
-
-    entries = []
-    for i = 1:20
-        append(entries, (I[i], J[i]))
-    end
-
-    @testset "randomly chosen entries $i" for e in entries
-       @test Pf[e[1],e[2]] ≈ Pf_ref[e[1],e[2]]
-    end
-end;
 
 
