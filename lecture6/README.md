@@ -169,15 +169,18 @@ xthreads = 32
 We obtained the following result using `readwrite_triad_KP_2D.jl`
 
 ```bash
-# add result
-
+julia> include("readwrite_triad_KP_2D.jl")
+Max thread number = 1024
+(threads=(32, 1), blocks=(512, 16384)) T_tot = 440.1775197357152
+(threads=(32, 2), blocks=(512, 8192)) T_tot = 763.3952981601233
+(threads=(32, 4), blocks=(512, 4096)) T_tot = 765.1535032539313
+(threads=(32, 8), blocks=(512, 2048)) T_tot = 763.4057914531317
+(threads=(32, 16), blocks=(512, 1024)) T_tot = 764.2789202142488
+(threads=(32, 32), blocks=(512, 512)) T_tot = 746.3432890165582
 ```
 
 
-The found peak memory is ... GB/s, where the theoretical peak memory is 732 GB/s.
-
-
-
+The found peak memory is 765.2 GB/s, where the theoretical peak memory is 732 GB/s. We slightly go over the $T_\text{peak}$, possibly the multiplication with the scalar and the addition of array elements are fused into one operation, thus there shall be less than 3 array access in each iteration performed, we thus overcounted it and arrive at an impossibly high $T_\text{tot}$
 
 
 
@@ -204,7 +207,23 @@ Max thread number = 1024
 ### Task 4: Plotting memory throughput
 
 
+#### todo: for the 2D fluid pressure diffusion GPU code 
 
+*Peak memory throughput used:*
+
+$T_\text{peak} = 765.2 GB/s$
+
+```
+Report in a figure the effective memory throughput $T_\text{eff}$ as function of number of grid points nx = ny. 
+
+
+Realise a weak scaling benchmark varying nx = ny = 32 .* 2 .^ (0:8) .- 1 (or until you run out of device memory). 
+
+Peak memory is reported as a horizontal line
+
+Small comment about the finding
+
+```
 
 
 
