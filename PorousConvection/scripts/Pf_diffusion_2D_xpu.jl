@@ -1,4 +1,5 @@
 # approach 1: using @parallel
+# no collect(devices()) needed
 const USE_GPU = true
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
@@ -13,16 +14,13 @@ using CUDA, Printf, Test, JLD
 # (NEW) add support for plots
 using Plots,Plots.Measures,Printf
 
-collect(devices())   # see avaliable GPUs
-device!(0)           # assign to one GPU
-
 
 # compute flux update
 @parallel function compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
 
     # without manual bound checking
-    @inn_x(qDx) = (@inn_x(qDx) - @inn_x(qDx) + k_ηf_dx * @d_xa(Pf)) * _1_θ_dτ
-    @inn_y(qDy) = (@inn_y(qDy) - @inn_y(qDy) + k_ηf_dy * @d_ya(Pf)) * _1_θ_dτ
+    @inn_x(qDx) = @inn_x(qDx) - (@inn_x(qDx) + k_ηf_dx * @d_xa(Pf)) * _1_θ_dτ
+    @inn_y(qDy) = @inn_y(qDy) - (@inn_y(qDy) + k_ηf_dy * @d_ya(Pf)) * _1_θ_dτ
 
     return nothing
 end
@@ -37,6 +35,7 @@ end
 end
 
 
+
 # computation function that gets called
 function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
     
@@ -46,7 +45,14 @@ function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
     return nothing
 end
 
-function Pf_diffusion_2D_xpu(nx_, ny_ ;do_check=true, test=true)
+
+@parallel function calc_r_Pf!(r_Pf, qDx, qDy, _dx, _dy)
+    @all(r_Pf)  = @d_xa(qDx) * _dx + @d_ya(qDy) * _dy
+    return nothing
+end
+
+
+function Pf_diffusion_2D_xpu(nx_, ny_ ;do_check=true, do_visu=false, test=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
@@ -78,7 +84,14 @@ function Pf_diffusion_2D_xpu(nx_, ny_ ;do_check=true, test=true)
     r_Pf    = @zeros(nx,ny)
     
 
-    # new visu
+    # visu
+    if do_visu
+        ENV["GKSwstype"]="nul"
+        if isdir("viz_out")==false mkdir("viz_out") end
+        loadpath = "viz_out/"; anim = Animation(loadpath,String[])
+        println("Animation directory: $(anim.dir)")
+        iframe = 0
+    end
 
 
     # iteration loop
@@ -90,12 +103,14 @@ function Pf_diffusion_2D_xpu(nx_, ny_ ;do_check=true, test=true)
         compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
       
         if do_check && (iter%ncheck == 0)
-            r_Pf  .= diff(qDx, dims=1)./dx .+ diff(qDy, dims=2)./dy
+            r_Pf  .= diff(qDx, dims=1) .* _dx .+ diff(qDy, dims=2).* _dy
             err_Pf = maximum(abs.(r_Pf))
             
-            # new visualization
-            # png((), @sprintf(""))
-            # TODO:
+            # visu
+            if do_visu
+                @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
+                png((heatmap(xc,yc,Array(Pf)';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)),@sprintf("viz_out/xpu_%04d.png",iframe+=1))
+            end
         end
         iter += 1; niter += 1
     end
@@ -117,6 +132,6 @@ function Pf_diffusion_2D_xpu(nx_, ny_ ;do_check=true, test=true)
 end
 
 if isinteractive()
-    Pf_diffusion_2D_xpu(511, 511; do_check=true, test=false)
+    Pf_diffusion_2D_xpu(511, 511; do_check=true, do_visu=false, test=false)
 end
 

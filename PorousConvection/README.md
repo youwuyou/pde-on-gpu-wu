@@ -22,8 +22,10 @@ PorousConvection
 ## Porous convection 2D
 
 - `Pf_diffusion_2D_xpu.jl`      <-> complete the script from class using `@parallel` approach
+                                <-> Performance on V100 GPU `Time = 0.019 sec, T_eff = 320.776 GB/s`
 
 - `Pf_diffusion_2D_perf_xpu.jl` <-> complete the script from class using `@parallel_indices` approach
+                                <-> Performance on V100 GPU `Time = 0.019 sec, T_eff = 325.022 GB/s`
 
 - `PorousConvection_2D_xpu.jl`  <-> edited from previous script with `@parallel` approach preferred
 
@@ -79,3 +81,28 @@ ncheck   = ceil(2max(nx,ny,nz))
 TODO: add parameters on the function signature for reproducing ex03/04 differently
 
 TODO: add final 3D animation showing evolution of temperature with GLMakie
+
+
+
+#   Troubleshooting
+
+- for the computation of the diffusion equation using 1 GPU, it seems like the performance is not improved by defining a kernel function for the error tracking of `r_Pf`
+
+The following function definition was added
+
+```julia
+
+@parallel function calc_r_Pf!(r_Pf, qDx, qDy, _dx, _dy)
+    @all(r_Pf)  = @d_xa(qDx) * _dx + @d_ya(qDy) * _dy
+    return nothing
+end
+
+```
+
+And it is called within do_check 
+
+```julia
+            @parallel calc_r_Pf!(r_Pf, qDx, qDy, _dx, _dy)
+```
+
+Which caused the performance to drop from `Time = 0.019 sec, T_eff = 327.480 GB/s ` to `Time = 0.103 sec, T_eff = 59.444 GB/s` on a single Nvidia Tesla V100 GPU. 

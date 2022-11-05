@@ -1,35 +1,29 @@
 # approach 2: using @parallel_indices
-
 const USE_GPU = true
 using ParallelStencil
 
-# NOTE: Not using the finite difference module here!
-# using ParallelStencil.FiniteDifferences2D
+# NOTE: Not using the finite difference module "ParallelStencil.FiniteDifferences2D" here!
 @static if USE_GPU
     @init_parallel_stencil(CUDA, Float64, 2)
 else
     @init_parallel_stencil(Threads, Float64, 2)
 end
 
-# old
 using CUDA, Printf, Test, JLD
 
-# new add support for plots
+# (NEW) add support for plots
 using Plots,Plots.Measures,Printf
 
-# collect(devices())   # see avaliable GPUs
-# device!(0)           # assign to one GPU
-
-# old
+# (OLD) self-implemented macros
 macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy] )) end
 macro d_ya(A)  esc(:( $A[ix,iy+1]-$A[ix,iy] )) end
 
 # compute flux update
 @parallel_indices (ix,iy) function compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
-    nx,ny=size(Pf)
-    # ix = (blockIdx().x - 1) * blockDim().x + threadIdx().x
-    # iy = (blockIdx().y - 1) * blockDim().y + threadIdx().y
     
+    # still need to obtain the size but no cuda-like ix,it definitions needed
+    nx,ny=size(Pf)
+
     # manual bound checking
     if(ix <= nx-1 && iy <= ny)
         qDx[ix+1,iy] -= (qDx[ix+1,iy] + k_ηf_dx * @d_xa(Pf))*_1_θ_dτ
@@ -45,8 +39,6 @@ end
 # compute pressure update
 @parallel_indices (ix,iy) function update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
     nx,ny=size(Pf)
-    # ix = (blockIdx().x - 1) * blockDim().x + threadIdx().x
-    # iy = (blockIdx().y - 1) * blockDim().y + threadIdx().y
 
     if (ix <= nx && iy <= ny)
         Pf[ix,iy]  -= (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy)*_β_dτ
@@ -59,15 +51,13 @@ end
 # computation function that gets called
 function compute!(Pf,qDx,qDy,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx,_dy,_β_dτ)
 
-    # old
-    # @cuda blocks=blocks threads=threads compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ); synchronize()
-    # @cuda blocks=blocks threads=threads update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ); synchronize()
+    # no cuda-liked launch needed
     @parallel compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
     @parallel update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
     return nothing
 end
 
-function Pf_diffusion_2D_gpu(nx_, ny_;do_check=true, test=true)
+function Pf_diffusion_2D_gpu(nx_, ny_;do_check=true, do_visu=false, test=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
@@ -93,13 +83,19 @@ function Pf_diffusion_2D_gpu(nx_, ny_;do_check=true, test=true)
     k_ηf_dx,k_ηf_dy = k_ηf/dx,k_ηf/dy
     
     # array initialisation
-    # Pf      = CuArray(@. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2))
-    # qDx,qDy = CuArray(zeros(Float64, nx+1,ny)), CuArray(zeros(Float64, nx,ny+1))
-    # r_Pf    = CuArray(zeros(Float64, nx,ny))
     Pf      = Data.Array(@. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2))
     qDx,qDy = @zeros(nx+1,ny), @zeros(nx,ny+1)
     r_Pf    = @zeros(nx,ny)
     
+    # visu
+    if do_visu
+        ENV["GKSwstype"]="nul"
+        if isdir("viz_out")==false mkdir("viz_out") end
+        loadpath = "viz_out/"; anim = Animation(loadpath,String[])
+        println("Animation directory: $(anim.dir)")
+        iframe = 0
+    end
+
     # iteration loop
     iter = 1; err_Pf = 2ϵtol
     t_tic = 0.0; niter = 0
@@ -111,6 +107,12 @@ function Pf_diffusion_2D_gpu(nx_, ny_;do_check=true, test=true)
         if do_check && (iter%ncheck == 0)
             r_Pf  .= diff(qDx, dims=1)./dx .+ diff(qDy, dims=2)./dy
             err_Pf = maximum(abs.(r_Pf))
+
+            # visu
+            if do_visu
+                @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
+                png((heatmap(xc,yc,Array(Pf)';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)),@sprintf("viz_out/xpu_perf_%04d.png",iframe+=1))
+            end
         end
         iter += 1; niter += 1
     end
@@ -126,16 +128,11 @@ function Pf_diffusion_2D_gpu(nx_, ny_;do_check=true, test=true)
         save("../test/Pf_127.jld", "data", Pf)
    end
 
-    # free the memory
-    # CUDA.unsafe_free!(Pf)
-    # CUDA.unsafe_free!(qDx)
-    # CUDA.unsafe_free!(qDy)
-    # CUDA.unsafe_free!(r_Pf)
 
    return Pf
 end
 
 if isinteractive()
-    Pf_diffusion_2D_gpu(511, 511; do_check=true, test=true)
+    Pf_diffusion_2D_gpu(511, 511; do_check=true, do_visu=false, test=false)
 end
 
