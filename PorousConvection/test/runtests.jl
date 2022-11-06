@@ -23,15 +23,15 @@ end;
     qDy_p_ref    = load("qDy_p_ref_30_2D.jld")["data"]
 
     # FIXME: change the signatures when any modifications exist
-    qDx_p, qDy_p = porous_convection_2D_xpu(63, 30; test=false)  # ny = 63, nt = 30
+    qDx_p, qDy_p = porous_convection_2D_xpu(63, 30; do_visu=false, do_check=true, test=false)  # ny = 63, nt = 30
 
 
     using StatsBase
     I = sample(1:length(qDx_p_ref), 20, replace=false)
 
     @testset "randomly chosen entries $i" for i in I
-        @test qDx_p[i] == qDx_p_ref[i]
-        @test qDy_p[i] == qDy_p_ref[i]
+        @test qDx_p[i] ≈ qDx_p_ref[i]
+        @test qDy_p[i] ≈ qDy_p_ref[i]
     end
 
 end;
