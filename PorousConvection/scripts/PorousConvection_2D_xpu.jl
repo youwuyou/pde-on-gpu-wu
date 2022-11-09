@@ -9,23 +9,20 @@ else
     @init_parallel_stencil(Threads, Float64, 2)
 end
 
-using Printf, Plots, BenchmarkTools
-using JLD  # for storing testing data
 
+using Printf, Plots
+using JLD  # for storing testing data
 
 @views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
 @views avx(A) = 0.5.*(A[1:end-1,:].+A[2:end,:])
 @views avy(A) = 0.5.*(A[:,1:end-1].+A[:,2:end])
 
 
-# macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy] )) end
-# macro d_ya(A)  esc(:( $A[ix,iy+1]-$A[ix,iy] )) end
-
-
 # Darcy's flux update in x, y directions
 @parallel function compute_flux_darcy!(Pf, T, qDx, qDy, _dx, _dy, k_ηf, αρgx, αρgy, _1_θ_dτ_D)
-    @inn_x(qDx) = @inn_x(qDx) - (@inn_x(qDx) + k_ηf * (@d_xa(Pf) * _dx - αρgx *  0.5 * @d_xa(T))) * _1_θ_dτ_D
-    @inn_y(qDy) = @inn_y(qDy) - (@inn_y(qDy) + k_ηf * (@d_ya(Pf) * _dy - αρgy *  0.5 * @d_ya(T))) * _1_θ_dτ_D
+
+    @inn_x(qDx) = @inn_x(qDx) - (@inn_x(qDx) + k_ηf * (@d_xa(Pf) * _dx - αρgx *  @av_xa(T))) * _1_θ_dτ_D
+    @inn_y(qDy) = @inn_y(qDy) - (@inn_y(qDy) + k_ηf * (@d_ya(Pf) * _dy - αρgy *  @av_ya(T))) * _1_θ_dτ_D
 
     return nothing
 end
@@ -56,53 +53,9 @@ end
 end
 
 
-# update dTdt for temperature computation
-@parallel function compute_dTdt!(T, T_old, dTdt, qDx, qDy, _dx, _dy, _dt, _ϕ)
-        # nx, ny = size(T)
-
-        #     dTdt        = zeros(nx-2,ny-2)            
-        # for iy = 1:ny-2
-        #     for ix = 1:nx-2
-        #         dTdt[ix,iy]           = (T[ix+1,iy+1] - T_old[ix+1,iy+1]) * _dt +
-        #            (max(qDx[2:end-2,2:end-1],0.0) * @d_xa(T[1:end-1,2:end-1]) * _dx  +
-        #             min(qDx[3:end-1,2:end-1],0.0) * @d_xa(T[2:end  ,2:end-1]) * _dx  +
-        #             max(qDy[2:end-1,2:end-2],0.0) * @d_ya(T[2:end-1,1:end-1]) * _dy  +
-        #             min(qDy[2:end-1,3:end-1],0.0) * @d_ya(T[2:end-1,2:end  ]) * _dy) * _ϕ
-
-        #     end
-        # end
-        @inn(dTdt) = (@inn(T) - @inn(T_old)) * _dt
-
-    return nothing
-end
-
-
-# compute on CPU for simplicity
-function correct_dTdt!(T, dTdt, qDx, qDy, _dx, _dy, _ϕ)
-
-    qDx_cpu = Array(qDx); qDy_cpu = Array(qDy); T_cpu = Array(T)
-
-    dTdt  =  dTdt + Data.Array(
-                (max.(qDx_cpu[2:end-2,2:end-1],0.0).* diff(T_cpu[1:end-1,2:end-1],dims=1).* _dx .+
-                 min.(qDx_cpu[3:end-1,2:end-1],0.0).* diff(T_cpu[2:end  ,2:end-1],dims=1).* _dx .+
-                 max.(qDy_cpu[2:end-1,2:end-2],0.0).* diff(T_cpu[2:end-1,1:end-1],dims=2).* _dy .+
-                 min.(qDy_cpu[2:end-1,3:end-1],0.0).* diff(T_cpu[2:end-1,2:end  ],dims=2).* _dy).* _ϕ
-                        )
-
-end
-
-
 
 # update the temperature
 @parallel function compute_T!(T, dTdt, qTx, qTy, _dx, _dy, _dt_β_dτ_T)
-    # nx, ny = size(T)
-
-    # for iy = 1:ny-2
-    #     for ix = 1:nx-2
-    #         # T[2:end-1,2:end-1] .-= (dTdt .+ @d_xa(qTx).* _dx .+ @d_ya(qTy).* _dy).* _dt_β_dτ_T
-    #         T[ix+1,iy+1] -= (dTdt[ix,iy] + @d_xa(qTx)* _dx + @d_ya(qTy)* _dy)* _dt_β_dτ_T                    
-    #     end
-    # end
 
     @inn(T) = @inn(T) - (@all(dTdt) + @d_xa(qTx)* _dx + @d_ya(qTy)* _dy)* _dt_β_dτ_T                    
 
@@ -112,31 +65,33 @@ end
 
 # update boundary condition
 @parallel_indices (iy) function bc_x!(A)
-    # T[[1,end],:]        .= T[[2,end-1],:]
+
     A[1  ,iy] = A[2    ,iy]
     A[end,iy] = A[end-1,iy]
     return
 end
 
 
-# compute function that performs all the kernels
 function compute!(Pf, T, T_old, qDx, qDy,  qTx, qTy, dTdt, _dx, _dy, _dt, k_ηf, αρgx, αρgy,  _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T, T_inn_x, T_inn_y)
 
-            # hydro            
-            @parallel compute_flux_darcy!(Pf, T, qDx, qDy, _dx, _dy, k_ηf, αρgx, αρgy, _1_θ_dτ_D)
-            @parallel compute_Pf!(Pf, qDx, qDy, _dx, _dy, _β_dτ_D)
-            
-            # thermo
-            @parallel compute_flux_temp!(Pf, T, qTx, qTy, _dx, _dy, λ_ρCp, _1_θ_dτ_T, T_inn_x, T_inn_y)
-          
-          
-            # FIXME: the compute_dTdt still does not work well
-            @parallel compute_dTdt!(T, T_old, dTdt, qDx, qDy, _dx, _dy, _dt, _ϕ)
-            correct_dTdt!(T, dTdt, qDx, qDy, _dx, _dy, _ϕ)
-            @parallel compute_T!(T, dTdt, qTx, qTy, _dx, _dy, _dt_β_dτ_T)
+    # hydro
+    @parallel compute_flux_darcy!(Pf, T, qDx, qDy, _dx, _dy, k_ηf, αρgx, αρgy, _1_θ_dτ_D)
+    @parallel compute_Pf!(Pf, qDx, qDy, _dx, _dy, _β_dτ_D)
 
-            # Boundary condition
-            @parallel (1:size(T,2)) bc_x!(T)
+    # thermo
+    @parallel compute_flux_temp!(Pf, T, qTx, qTy, _dx, _dy, λ_ρCp, _1_θ_dτ_T, T_inn_x, T_inn_y)
+
+    dTdt           .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1]).* _dt .+
+                           (max.(qDx[2:end-2,2:end-1],0.0).*diff(T[1:end-1,2:end-1],dims=1).* _dx .+
+                            min.(qDx[3:end-1,2:end-1],0.0).*diff(T[2:end  ,2:end-1],dims=1).* _dx .+
+                            max.(qDy[2:end-1,2:end-2],0.0).*diff(T[2:end-1,1:end-1],dims=2).* _dy .+
+                            min.(qDy[2:end-1,3:end-1],0.0).*diff(T[2:end-1,2:end  ],dims=2).* _dy).* _ϕ
+
+    @parallel compute_T!(T, dTdt, qTx, qTy, _dx, _dy, _dt_β_dτ_T)
+
+    # Boundary condition
+    @parallel (1:size(T,2)) bc_x!(T)
+
 
     return nothing
 end
@@ -144,7 +99,8 @@ end
 
 
 
-@views function porous_convection_2D_xpu(ny_, nt_; do_visu=false, do_check=true, test=true)
+
+@views function porous_convection_2D_xpu(ny_, nt_, nvis_; do_visu=false, do_check=true, test=true)
     # physics
     lx,ly       = 40., 20.
     k_ηf        = 1.0
@@ -163,7 +119,7 @@ end
     cfl         = 1.0/sqrt(2.1)
     maxiter     = 10max(nx,ny)
     ϵtol        = 1e-6
-    nvis        = 20
+    nvis        = nvis_
     ncheck      = ceil(max(nx,ny)) # ceil(0.25max(nx,ny))
   
     # preprocessing
@@ -172,14 +128,13 @@ end
     xc,yc       = av1(xn),av1(yn)
     θ_dτ_D      = max(lx,ly)/re_D/cfl/min(dx,dy)
     β_dτ_D      = (re_D*k_ηf)/(cfl*min(dx,dy)*max(lx,ly))
-   
+
     # hpc value precomputation
     _dx, _dy    = 1. /dx, 1. /dy
     _ϕ          = 1. / ϕ
     _1_θ_dτ_D   = 1 ./(1.0 + θ_dτ_D)
     _β_dτ_D     = 1. /β_dτ_D
-
-
+   
     # array initialization
     Pf          = @zeros(nx,ny)
     r_Pf        = @zeros(nx,ny)
@@ -204,14 +159,15 @@ end
     qTx         = @zeros(nx-1,ny-2)
     qTy         = @zeros(nx-2,ny-1)
    
+    # vis
     st          = ceil(Int,nx/25)
-    Xc, Yc      = [x for x=xc, y=yc], [y for x=xc,y=yc]            # visu done on cpu
+    Xc, Yc      = [x for x=xc, y=yc], [y for x=xc,y=yc]
     Xp, Yp      = Xc[1:st:end,1:st:end], Yc[1:st:end,1:st:end]
+    iframe = 0
+   
 
-    # visu
+    # visu - needed parameters for plotting
     if do_visu
-        # needed parameters for plotting
-
         # plotting environment
         ENV["GKSwstype"]="nul"
         if isdir("viz_out")==false mkdir("viz_out") end
@@ -219,7 +175,6 @@ end
         println("Animation directory: $(anim.dir)")
         iframe = 0
     end
-
 
 
     # action
@@ -233,9 +188,10 @@ end
         else
             min(5.0*min(dx,dy)/(αρg*ΔT*k_ηf),ϕ*min(dx/maximum(abs.(qDx)), dy/maximum(abs.(qDy)))/2.1)
         end
-        _dt = 1. /dt   # precomputation
         
-        re_T    = π + sqrt(π^2 + ly^2/λ_ρCp * _dt)
+        _dt = 1. /dt   # precomputation
+
+        re_T    = π + sqrt(π^2 + ly^2/λ_ρCp/dt)
         θ_dτ_T  = max(lx,ly)/re_T/cfl/min(dx,dy)
         β_dτ_T  = (re_T*λ_ρCp)/(cfl*min(dx,dy)*max(lx,ly))
         
@@ -245,22 +201,21 @@ end
         # iteration loop
         iter = 1; err_D = 2ϵtol; err_T = 2ϵtol
         while max(err_D,err_T) >= ϵtol && iter <= maxiter
+
             if (it==1 && iter == 11) t_tic = Base.time(); niter=0 end
 
-            # TODO: add the compute! function
             compute!(Pf, T, T_old, qDx, qDy,  qTx, qTy, dTdt, _dx, _dy, _dt, k_ηf, αρgx, αρgy,  _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T, T_inn_x, T_inn_y)
 
-
+            
             if do_check && iter % ncheck == 0
                 r_Pf  .= diff(qDx,dims=1).* _dx .+ diff(qDy,dims=2).* _dy
                 r_T   .= dTdt .+ diff(qTx,dims=1).* _dx .+ diff(qTy,dims=2).* _dy
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
-                # @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
             end
             iter += 1; niter += 1
         end
-        # @printf("it = %d, iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",it,iter/nx,err_D,err_T)
+
 
         if it % nvis == 0
             qDx_c .= avx(Array(qDx))
@@ -270,7 +225,7 @@ end
             qDy_c ./= qDmag
             qDx_p = qDx_c[1:st:end,1:st:end]
             qDy_p = qDy_c[1:st:end,1:st:end]
-            
+
 
             # visualisation
             if do_visu
@@ -279,30 +234,31 @@ end
                     @sprintf("viz_out/porous2D_%04d.png",iframe+=1))
             end
         end
-
     end
 
-
     t_toc = Base.time() - t_tic
-    # FIXME: change the expression to compute the effective memory throughput!
-    A_eff = (3 * 2) / 1e9 * nx * ny * sizeof(Float64)  # Effective main memory access per iteration [GB]
+    A_eff = (6 * 2 + 2) / 1e9 * nx * ny * sizeof(Float64)  # Effective main memory access per iteration [GB]
     t_it  = t_toc / niter                              # Execution time per iteration [s]
     T_eff = A_eff / t_it                               # Effective memory throughput [GB/s]
     
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s \n", t_toc, T_eff)
 
-
-    if test == true
-        save("../test/qDx_p_ref_30_2D.jld", "data", qDx_c[1:st:end,1:st:end])  # store case for reference testing
-        save("../test/qDy_p_ref_30_2D.jld", "data", qDy_c[1:st:end,1:st:end])
-    end
     
-    # Return qDx_p and qDy_p at final time as CPU arrays
+    
+    if test == true
+        save("../test/qDx_p_ref_30_2D_xpu.jld", "data", qDx_c[1:st:end,1:st:end])  # store case for reference testing
+        save("../test/qDy_p_ref_30_2D_xpu.jld", "data", qDy_c[1:st:end,1:st:end])
+    end
+
+    
+    # Return qDx_p and qDy_p at final time
     return [qDx_c[1:st:end,1:st:end], qDy_c[1:st:end,1:st:end]]   
 end
 
 
 
 if isinteractive()
-    porous_convection_2D_xpu(63, 500; do_visu=true, do_check=true,test=false)  # ny = 63
+    # porous_convection_2D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)    # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
+    porous_convection_2D_xpu(511, 4000, 50; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX01, TASK 4 (WEEK7)! ny = 511, nt = 4000, nvis = 50
+
 end

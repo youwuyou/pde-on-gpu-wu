@@ -23,7 +23,7 @@ end;
     qDy_p_ref    = load("qDy_p_ref_30_2D.jld")["data"]
 
     # FIXME: change the signatures when any modifications exist
-    qDx_p, qDy_p = porous_convection_2D_xpu(63, 30; do_visu=false, do_check=true, test=false)  # ny = 63, nt = 30
+    qDx_p, qDy_p = porous_convection_2D_xpu(63, 30, 20; do_visu=false, do_check=true, test=false)  # ny = 63, nt = 30
 
 
     using StatsBase

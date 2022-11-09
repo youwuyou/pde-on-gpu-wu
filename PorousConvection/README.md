@@ -36,6 +36,26 @@ The `PorousConvection_2D_xpu.jl` is modified from the previous exercise `porous_
 In our implementation from the serial code to the parallelized code, we preferred the approach of `@parallel` whenever possible.
 
 
+NOTE: The code is largely parallelized on the GPU but with the exception for the computation of `dTdt`, I am not so sure how to put it into a kernel function yet, any help would be appreciated! :)
+
+
+
+---
+
+### Result
+
+
+#### Lecture 7 - Task 1.3: Small case
+
+Using `ny = 63` , `nt = 500`, we obtain the identical plot for the final state as given in the task description
+
+ <img src="./docs/porous2D_0025.png" width="60%">
+
+
+
+####  Lecture 7 - Task 1.4: Large case
+
+
 With the following parameters, we run our code on Piz Daint using one Tesla P100 GPU, where we expected the run to take 1-2 hours of time.
 
 ```bash
@@ -48,7 +68,14 @@ nvis    = 50
 ncheck  = ceil(2max(nx,ny))
 ```
 
-TODO: add parameters on the function signature for reproducing ex03/04 differently
+*Memory throughput:*  
+
+```bash
+julia> include("PorousConvection_2D_xpu.jl")
+Animation directory: viz_out/
+Time = 7774.123 sec, T_eff = 115.558 GB/s 
+```
+
 
 TODO: add final 2D animation showing evolution of temperature with velocity quiver
 
@@ -62,6 +89,7 @@ TODO: add final 2D animation showing evolution of temperature with velocity quiv
 
 - `Pf_diffusion_3D_xpu.jl`      <-> complete the script from class using `@parallel` approach
                                 <-> using ParallelStencil.FiniteDifferences3D submodule
+                                <-> `Time = 14.278 sec, T_eff = 293.071 GB/s` on Tesla V100 GPU
 
 - `PorousConvection_3D_xpu.jl`  <-> edited from `PorousConvection_2D_xpu.jl` script with `@parallel` approach preferred
 
