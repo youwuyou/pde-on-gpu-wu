@@ -21,13 +21,23 @@ PorousConvection
 
 ## Porous convection 2D
 
-- `Pf_diffusion_2D_xpu.jl`      <-> complete the script from class using `@parallel` approach
-                                <-> Performance on V100 GPU `Time = 0.019 sec, T_eff = 320.776 GB/s`
+- `Pf_diffusion_2D_xpu.jl`     
 
-- `Pf_diffusion_2D_perf_xpu.jl` <-> complete the script from class using `@parallel_indices` approach
-                                <-> Performance on V100 GPU `Time = 0.019 sec, T_eff = 325.022 GB/s`
+    - complete the script from class using `@parallel` approach
 
-- `PorousConvection_2D_xpu.jl`  <-> edited from previous script with `@parallel` approach preferred
+    - Performance on V100 GPU `Time = 0.019 sec, T_eff = 320.776 GB/s`
+
+
+- `Pf_diffusion_2D_perf_xpu.jl` 
+
+    - complete the script from class using `@parallel_indices` approach
+
+    - Performance on V100 GPU `Time = 0.019 sec, T_eff = 325.022 GB/s`
+
+
+- `PorousConvection_2D_xpu.jl`  
+
+    - edited from previous script with `@parallel` approach preferred
 
 
 
@@ -87,11 +97,17 @@ The resulted plots are stored as png files and converted to gif
 
 ## Porous convection 3D
 
-- `Pf_diffusion_3D_xpu.jl`      <-> complete the script from class using `@parallel` approach
-                                <-> using ParallelStencil.FiniteDifferences3D submodule
-                                <-> `Time = 14.278 sec, T_eff = 293.071 GB/s` on Tesla V100 GPU
+- `Pf_diffusion_3D_xpu.jl`
 
-- `PorousConvection_3D_xpu.jl`  <-> edited from `PorousConvection_2D_xpu.jl` script with `@parallel` approach preferred
+    - complete the script from class using `@parallel` approach
+
+    - using ParallelStencil.FiniteDifferences3D submodule
+                                
+    - `Time = 14.278 sec, T_eff = 293.071 GB/s` on Tesla V100 GPU
+
+- `PorousConvection_3D_xpu.jl`  
+
+    - edited from `PorousConvection_2D_xpu.jl` script with `@parallel` approach preferred
 
 
 With the following parameters, we run our code on Piz Daint using one Tesla P100 GPU, where we expected the run to take 2 hours of time.
@@ -113,6 +129,13 @@ TODO: add final 3D animation showing evolution of temperature with GLMakie
 
 
 #   Troubleshooting
+
+## Testing
+
+For the provided `runtests.jl` template, the runtests function shall return a `0` when all test passed. The provided template is implicitly `return Nothing` and this caused the test to fail!
+
+
+## Diffusion
 
 - for the computation of the diffusion equation using 1 GPU, it seems like the performance is not improved by defining a kernel function for the error tracking of `r_Pf`
 

@@ -1,5 +1,5 @@
 # Preferring @parallel approach
-const USE_GPU = true
+const USE_GPU = false
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 
@@ -22,8 +22,8 @@ end
 
 
 @views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
-@views avx(A) = (A[1:end-1,:,:].+A[2:end,:,:].+A[]) ./ 3
-@views avy(A) = (A[:,1:end-1,:].+A[:,2:end,:].+) ./ 3
+# @views avx(A) = (A[1:end-1,:,:].+A[2:end,:,:].+A[]) ./ 3
+# @views avy(A) = (A[:,1:end-1,:].+A[:,2:end,:].+) ./ 3
 
 
 # Darcy's flux update in x, y directions

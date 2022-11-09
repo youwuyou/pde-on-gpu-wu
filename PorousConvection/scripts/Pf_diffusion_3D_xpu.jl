@@ -55,8 +55,8 @@ end
 
 function Pf_diffusion_3D_xpu(nx_, ny_, nz_ ;do_check=true, do_visu=false, test=false)
     # physics
-    lx,ly,lz   = 20.0,20.0, 20.0
-    k_ηf    = 1.0
+    lx,ly,lz  = 20.0,20.0, 20.0
+    k_ηf      = 1.0
   
     # numerics
     # (NEW) no launch parameters needed

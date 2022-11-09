@@ -135,6 +135,7 @@ end
     _ϕ          = 1. / ϕ
     _1_θ_dτ_D   = 1 ./(1.0 + θ_dτ_D)
     _β_dτ_D     = 1. /β_dτ_D
+    print((re_D*k_ηf)/(cfl*min(4,4)*max(lx,ly)))
    
     # array initialization
     Pf          = @zeros(nx,ny)
