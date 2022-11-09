@@ -81,7 +81,7 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 
 | Number | Topic | Finished |
 | --- | --- | --- |
-| Code Exercise 7.1 | 2D Thermal porous convection xPU implementation |  |
+| Code Exercise 7.1 | 2D Thermal porous convection xPU implementation | :heavy_check_mark: |
 | Code Exercise 7.2 | 3D Thermal porous convection xPU implementation |  |
 | Code Exercise 7.3 | CI and GitHub Actions |  |
 

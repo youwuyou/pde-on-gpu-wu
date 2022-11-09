@@ -1,5 +1,6 @@
 # Preferring @parallel approach
-const USE_GPU = true
+# using false when pushing to github <= no github action support for gpu
+const USE_GPU = false
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 

@@ -1,5 +1,5 @@
 # Linear 1D diffusion with n fake mpi processes
-using Plots
+using Plots, Test
 
 @views function diffusion_1D_nprocs(; do_visu=true)
     # Physics
@@ -29,7 +29,8 @@ using Plots
 
     for ip = 1:np
         for ix = 1:nx
-            x[ix,ip] = dxg / 2. + dxg * (ix -1) * ip# 
+            # x[ix,ip] = -dxg / 2. + dxg * (ix + (ip -1) * (nx-2)) - lx/2 # 
+            x[ix,ip] =  dxg / 2. + dxg * ((ix-1) + (ip -1) * (nx-2)) - lx/2 # 
             C[ix,ip] = exp(-x[ix,ip]^2)
         end
         i1 = 1 + (ip-1)*(nx-2)
@@ -46,6 +47,8 @@ using Plots
 
         for ip = 1:np-1 # update boundaries
             # ...
+            C[end, ip] = C[2, ip+1] 
+            C[1, ip+1] = C[end, ip]
         end
         
         for ip = 1:np # global picture
@@ -63,6 +66,9 @@ using Plots
             end
         end
     end
+
+
+
     return
 end
 

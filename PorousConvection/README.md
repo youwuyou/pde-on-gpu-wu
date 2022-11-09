@@ -77,9 +77,9 @@ Time = 7774.123 sec, T_eff = 115.558 GB/s
 ```
 
 
-TODO: add final 2D animation showing evolution of temperature with velocity quiver
+The resulted plots are stored as png files and converted to gif
 
-
+ <img src="./docs/porous2D_large.gif" width="60%">
 
 
 
