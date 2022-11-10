@@ -127,6 +127,13 @@ TODO: add parameters on the function signature for reproducing ex03/04 different
 TODO: add final 3D animation showing evolution of temperature with GLMakie
 
 
+```bash
+# Running on Tesla V100
+julia> include("PorousConvection_3D_xpu.jl")
+Animation directory: viz3D_out/
+Time = 14132.146 sec, T_eff = 151.489 GB/s 
+```
+
 
 #   Troubleshooting
 

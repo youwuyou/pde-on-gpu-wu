@@ -1,5 +1,5 @@
 # Preferring @parallel approach
-const USE_GPU = false
+const USE_GPU = true
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 
@@ -266,8 +266,8 @@ end
 
 
 if isinteractive()
-    porous_convection_3D_xpu(63, 3, 1; do_visu=true, do_check=true,test=false)          # DEBUG CASE
+    # porous_convection_3D_xpu(63, 3, 1; do_visu=true, do_check=true,test=false)          # DEBUG CASE
     # porous_convection_3D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)     # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 63, nt = 500, nvis = 20
-    # porous_convection_3D_xpu(511, 4000, 50; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 511, nt = 4000, nvis = 50
+    porous_convection_3D_xpu(127, 4000, 50; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 511, nt = 4000, nvis = 50
 
 end
