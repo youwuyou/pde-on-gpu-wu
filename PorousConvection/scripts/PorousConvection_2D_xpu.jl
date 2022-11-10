@@ -39,16 +39,11 @@ end
 
 
 # Temperature flux update in x, y directions
-@parallel function compute_flux_temp!(Pf, T, qTx, qTy, _dx, _dy, λ_ρCp, _1_θ_dτ_T, T_inn_x, T_inn_y)
+@parallel function compute_flux_temp!(T, qTx, qTy, _dx, _dy, λ_ρCp, _1_θ_dτ_T)
 
-    # qTx[ix,iy]  -= (qTx[ix,iy] + λ_ρCp*(@d_xa(T[:,2:end-1])* _dx)) * _1_θ_dτ_T                    
-    # qTy[ix,iy]  -= (qTy[ix,iy] + λ_ρCp*(@d_ya(T[2:end-1,:])* _dy)) * _1_θ_dτ_T
-
-    @all(T_inn_y) = @inn_y(T)
-    @all(T_inn_x) = @inn_x(T)
-
-    @all(qTx)  = @all(qTx) - (@all(qTx) + λ_ρCp* @d_xa(T_inn_y) * _dx) * _1_θ_dτ_T                    
-    @all(qTy)  = @all(qTy) - (@all(qTy) + λ_ρCp* @d_ya(T_inn_x) * _dy) * _1_θ_dτ_T
+    # @d_xi, @d_yi derive the arrays and select the inner elements 
+    @all(qTx)  = @all(qTx) - (@all(qTx) + λ_ρCp* @d_xi(T) * _dx) * _1_θ_dτ_T                    
+    @all(qTy)  = @all(qTy) - (@all(qTy) + λ_ρCp* @d_yi(T) * _dy) * _1_θ_dτ_T
 
     return nothing
 end
@@ -73,14 +68,14 @@ end
 end
 
 
-function compute!(Pf, T, T_old, qDx, qDy,  qTx, qTy, dTdt, _dx, _dy, _dt, k_ηf, αρgx, αρgy,  _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T, T_inn_x, T_inn_y)
+function compute!(Pf, T, T_old, qDx, qDy,  qTx, qTy, dTdt, _dx, _dy, _dt, k_ηf, αρgx, αρgy,  _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T)
 
     # hydro
     @parallel compute_flux_darcy!(Pf, T, qDx, qDy, _dx, _dy, k_ηf, αρgx, αρgy, _1_θ_dτ_D)
     @parallel compute_Pf!(Pf, qDx, qDy, _dx, _dy, _β_dτ_D)
 
     # thermo
-    @parallel compute_flux_temp!(Pf, T, qTx, qTy, _dx, _dy, λ_ρCp, _1_θ_dτ_T, T_inn_x, T_inn_y)
+    @parallel compute_flux_temp!(T, qTx, qTy, _dx, _dy, λ_ρCp, _1_θ_dτ_T)
 
     dTdt           .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1]).* _dt .+
                            (max.(qDx[2:end-2,2:end-1],0.0).*diff(T[1:end-1,2:end-1],dims=1).* _dx .+
@@ -135,7 +130,6 @@ end
     _ϕ          = 1. / ϕ
     _1_θ_dτ_D   = 1 ./(1.0 + θ_dτ_D)
     _β_dτ_D     = 1. /β_dτ_D
-    print((re_D*k_ηf)/(cfl*min(4,4)*max(lx,ly)))
    
     # array initialization
     Pf          = @zeros(nx,ny)
@@ -147,14 +141,6 @@ end
     T_cpu       = @. ΔT*exp(-xc^2 - (yc'+ly/2)^2); T_cpu[:,1] .= ΔT/2; T_cpu[:,end] .= -ΔT/2
     T           = Data.Array(T_cpu)
     T_old       = Data.Array(copy(T_cpu))
-    # FIXME: check if it is correct to assign it like this
-
-
-    # (NEW) added for the temperature update to select @inn_y(T) and @inn_x(T)
-    #   since the nested macro does not work
-    T_inn_y     = @zeros(nx, ny-2)
-    T_inn_x     = @zeros(nx-2, ny)
-
 
     dTdt        = @zeros(nx-2,ny-2)
     r_T         = @zeros(nx-2,ny-2)
@@ -206,8 +192,7 @@ end
 
             if (it==1 && iter == 11) t_tic = Base.time(); niter=0 end
 
-            compute!(Pf, T, T_old, qDx, qDy,  qTx, qTy, dTdt, _dx, _dy, _dt, k_ηf, αρgx, αρgy,  _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T, T_inn_x, T_inn_y)
-
+            compute!(Pf, T, T_old, qDx, qDy,  qTx, qTy, dTdt, _dx, _dy, _dt, k_ηf, αρgx, αρgy,  _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T)
             
             if do_check && iter % ncheck == 0
                 r_Pf  .= diff(qDx,dims=1).* _dx .+ diff(qDy,dims=2).* _dy
@@ -240,8 +225,8 @@ end
 
     t_toc = Base.time() - t_tic
     A_eff = (6 * 2 + 2) / 1e9 * nx * ny * sizeof(Float64)  # Effective main memory access per iteration [GB]
-    t_it  = t_toc / niter                              # Execution time per iteration [s]
-    T_eff = A_eff / t_it                               # Effective memory throughput [GB/s]
+    t_it  = t_toc / niter                                  # Execution time per iteration [s]
+    T_eff = A_eff / t_it                                   # Effective memory throughput [GB/s]
     
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s \n", t_toc, T_eff)
 
@@ -260,7 +245,10 @@ end
 
 
 if isinteractive()
-    # porous_convection_2D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)    # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
-    porous_convection_2D_xpu(511, 4000, 50; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX01, TASK 4 (WEEK7)! ny = 511, nt = 4000, nvis = 50
+    
+    porous_convection_2D_xpu(63, 1, 20; do_visu=true, do_check=true,test=false)      # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
+
+    # porous_convection_2D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)      # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
+    # porous_convection_2D_xpu(511, 4000, 50; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX01, TASK 4 (WEEK7)! ny = 511, nt = 4000, nvis = 50
 
 end
