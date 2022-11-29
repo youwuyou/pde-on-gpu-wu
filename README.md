@@ -82,8 +82,8 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | Number | Topic | Finished |
 | --- | --- | --- |
 | Code Exercise 7.1 | 2D Thermal porous convection xPU implementation | :heavy_check_mark: |
-| Code Exercise 7.2 | 3D Thermal porous convection xPU implementation |  |
-| Code Exercise 7.3 | CI and GitHub Actions |  |
+| Code Exercise 7.2 | 3D Thermal porous convection xPU implementation | :heavy_check_mark: |
+| Code Exercise 7.3 | CI and GitHub Actions | :heavy_check_mark: |
 
 
 ### Lecture 8: Julia MPI & multi-XPU
@@ -108,3 +108,12 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 
 ### Lecture 10: Final Projects
 
+**Topic:** Hydro-mechanical solver for (in)compressible two-phase flow equations
+
+**Repository:**  [HydroMech.jl](https://github.com/youwuyou/HydroMech.jl)
+
+**Description:** 
+
+The project aims to implement a collection of hydro-mechanical solvers that solve the (in)compressible two-phase flow equations in 2-/3D. As a starting point, we extend and use the existing code of the 2D incompressible solver to reproduce the porosity wave benchmark as in ([Räss 2019](https://doi.org/10.1093/gji/ggz239)). The second step of the project consists of implementing the 3D version of it and to reproduce the 3D benchmark in the same paper.
+
+After verifying the reproducibility of the developed incompressible solver, we will implement the compressible solver and reproduce the fluid injection 2D benchmark as in ([Dal Zilio 2022](https://doi.org/10.1016/j.tecto.2022.229516))

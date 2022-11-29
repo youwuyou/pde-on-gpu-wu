@@ -55,7 +55,7 @@ NOTE: The code is largely parallelized on the GPU but with the exception for the
 ### Result
 
 
-#### Lecture 7 - Task 1.3: Small case
+#### Lecture 7 - Task 1.3: Small 2D case
 
 Using `ny = 63` , `nt = 500`, we obtain the identical plot for the final state as given in the task description
 
@@ -63,7 +63,7 @@ Using `ny = 63` , `nt = 500`, we obtain the identical plot for the final state a
 
 
 
-####  Lecture 7 - Task 1.4: Large case
+####  Lecture 7 - Task 1.4: Large 2D case
 
 
 With the following parameters, we run our code on Piz Daint using one Tesla P100 GPU, where we expected the run to take 1-2 hours of time.
@@ -110,10 +110,14 @@ The resulted plots are stored as png files and converted to gif
     - edited from `PorousConvection_2D_xpu.jl` script with `@parallel` approach preferred
 
 
+#### Lecture 7 - Task 2.2: Small 3D case (slice)
+
 For lecture 7, exercise 2.2 we have the following gif. animation produced. The resulted plots of the 2D slices in 3D case are stored as png files and converted to gif
 
  <img src="./docs/porous3D_small.gif" width="60%">
 
+
+#### Lecture 7 - Task 2.3: Large 3D case (final $T$)
 
 With the following parameters, we run our code on Piz Daint using one Tesla P100 GPU, where we expected the run to take 2 hours of time.
 
