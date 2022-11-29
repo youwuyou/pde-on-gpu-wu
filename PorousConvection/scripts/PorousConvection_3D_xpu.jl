@@ -1,5 +1,5 @@
 # Preferring @parallel approach
-const USE_GPU = true
+const USE_GPU = false
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 
@@ -25,8 +25,6 @@ end
 @views avx(A) = (A[1:end-1,:,:].+A[2:end,:,:]) ./ 2
 @views avy(A) = (A[:,1:end-1,:].+A[:,2:end,:]) ./ 2
 @views avz(A) = (A[:,:, 1:end-1].+A[:,:,2:end]) ./ 2
-
-
 
 
 
@@ -64,6 +62,34 @@ end
 
 
 
+@parallel_indices (ix, iy, iz) function compute_dTdt!(dTdt, T, T_old, qDx, qDy, qDz, _dx, _dy, _dz, _dt, _ϕ)
+
+    # dTdt           .= (T[2:end-1,2:end-1,2:end-1] .- T_old[2:end-1,2:end-1,2:end-1]).* _dt .+
+    #                        (max.(qDx[2:end-2,2:end-1,2:end-1],0.0).*diff(T[1:end-1,2:end-1,2:end-1],dims=1).* _dx .+
+    #                         min.(qDx[3:end-1,2:end-1,2:end-1],0.0).*diff(T[2:end  ,2:end-1,2:end-1],dims=1).* _dx .+
+    #                         max.(qDy[2:end-1,2:end-2,2:end-1],0.0).*diff(T[2:end-1,1:end-1,2:end-1],dims=2).* _dy .+
+    #                         min.(qDy[2:end-1,3:end-1,2:end-1],0.0).*diff(T[2:end-1,2:end  ,2:end-1],dims=2).* _dy .+
+    #                         max.(qDz[2:end-1,2:end-1,2:end-2],0.0).*diff(T[2:end-1,2:end-1,1:end-1],dims=3).* _dz .+
+    #                         min.(qDz[2:end-1,2:end-1,3:end-1],0.0).*diff(T[2:end-1,2:end-1,2:end  ],dims=3).* _dz
+    #                    ).* _ϕ
+    if (ix<=size(dTdt,1) && iy<=size(dTdt,2) && iz<=size(dTdt,3))
+        dTdt[ix,iy,iz] = (T[ix+1,iy+1,iz+1] - T_old[ix+1,iy+1,iz+1])*_dt +
+                         (max(qDx[ix+1,iy+1,iz+1],0.0)*(T[ix+1,iy+1,iz+1]-T[ix  ,iy+1,iz+1])*_dx +
+                          min(qDx[ix+2,iy+1,iz+1],0.0)*(T[ix+2,iy+1,iz+1]-T[ix+1,iy+1,iz+1])*_dx +
+                          max(qDy[ix+1,iy+1,iz+1],0.0)*(T[ix+1,iy+1,iz+1]-T[ix+1,iy  ,iz+1])*_dy +
+                          min(qDy[ix+1,iy+2,iz+1],0.0)*(T[ix+1,iy+2,iz+1]-T[ix+1,iy+1,iz+1])*_dy +
+                          max(qDz[ix+1,iy+1,iz+1],0.0)*(T[ix+1,iy+1,iz+1]-T[ix+1,iy+1,iz  ])*_dz +
+                          min(qDz[ix+1,iy+1,iz+2],0.0)*(T[ix+1,iy+1,iz+2]-T[ix+1,iy+1,iz+1])*_dz)*_ϕ
+    end
+
+
+
+    return nothing
+
+end
+
+
+
 # update the temperature
 @parallel function compute_T!(T, dTdt, qTx, qTy, qTz, _dx, _dy, _dz, _dt_β_dτ_T)
 
@@ -80,6 +106,13 @@ end
     return
 end
 
+# update the residual
+# @parallel function compute_r!(r_Pf,r_T,qDx,qDy,qDz,qTx,qTy,qTz,dTdt,_dx,_dy,_dz)
+#     @all(r_Pf) = @d_xa(qDx)*_dx + @d_ya(qDy)*_dy + @d_za(qDz)*_dz
+#     @all(r_T)  = @all(dTdt) + @d_xa(qTx)*_dx + @d_ya(qTy)*_dy + @d_za(qTz)*_dz
+#     return nothing
+# end
+
 
 function compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz, _dt, k_ηf, αρg, _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T)
 
@@ -89,16 +122,7 @@ function compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _d
 
     # thermo
     @parallel compute_flux_temp!(T, qTx, qTy, qTz, _dx, _dy, _dz, λ_ρCp, _1_θ_dτ_T)
-
-    dTdt           .= (T[2:end-1,2:end-1,2:end-1] .- T_old[2:end-1,2:end-1,2:end-1]).* _dt .+
-                           (max.(qDx[2:end-2,2:end-1,2:end-1],0.0).*diff(T[1:end-1,2:end-1,2:end-1],dims=1).* _dx .+
-                            min.(qDx[3:end-1,2:end-1,2:end-1],0.0).*diff(T[2:end  ,2:end-1,2:end-1],dims=1).* _dx .+
-                            max.(qDy[2:end-1,2:end-2,2:end-1],0.0).*diff(T[2:end-1,1:end-1,2:end-1],dims=2).* _dy .+
-                            min.(qDy[2:end-1,3:end-1,2:end-1],0.0).*diff(T[2:end-1,2:end  ,2:end-1],dims=2).* _dy .+
-                            max.(qDz[2:end-1,2:end-1,2:end-2],0.0).*diff(T[2:end-1,2:end-1,1:end-1],dims=3).* _dz .+
-                            min.(qDz[2:end-1,2:end-1,3:end-1],0.0).*diff(T[2:end-1,2:end-1,2:end  ],dims=3).* _dz
-                       ).* _ϕ
-
+    @parallel compute_dTdt!(dTdt, T, T_old, qDx, qDy, qDz, _dx, _dy, _dz, _dt, _ϕ)
     @parallel compute_T!(T, dTdt, qTx, qTy, qTz, _dx, _dy, _dz, _dt_β_dτ_T)
 
     # Boundary condition
@@ -156,7 +180,7 @@ end
     qDx_c,qDy_c,qDz_c  = zeros(nx,ny,nz), zeros(nx,ny,nz), zeros(nx,ny,nz) 
     qDmag              = zeros(nx,ny,nz)
 
-    T_cpu       = [ΔT*exp(-(xc[ix]^2) -(yc[iy]^2) -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
+    T_cpu       = [ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
     T           = Data.Array(T_cpu)   # Type: Float64
     T_old       = Data.Array(copy(T_cpu))
 
@@ -169,7 +193,6 @@ end
 
     # vis
     st          = ceil(Int,nx/25)
-    iframe = 0
    
 
     # visu - needed parameters for plotting
@@ -202,7 +225,7 @@ end
         β_dτ_T  = (re_T*λ_ρCp)/(cfl*min(dx,dy,dz)*max(lx,ly,lz))
         
         _1_θ_dτ_T   = 1 ./ (1.0 + θ_dτ_T)
-        _dt_β_dτ_T  = 1 ./(_dt + β_dτ_T) # precomputation
+        _dt_β_dτ_T  = 1 ./ (_dt + β_dτ_T) # precomputation
 
         # iteration loop
         iter = 1; err_D = 2ϵtol; err_T = 2ϵtol
@@ -232,10 +255,12 @@ end
             qDz_c ./= qDmag
             
             # visualisation
+            iframe = 0
             if do_visu
                 p1=heatmap(xc,zc,Array(T)[:,ceil(Int,ny/2),:]';xlims=(xc[1],xc[end]),ylims=(zc[1],zc[end]),aspect_ratio=1,c=:turbo)
                 png(p1,@sprintf("viz3D_out/%04d.png",iframe+=1))
             end
+
         end
     end
     
@@ -268,6 +293,6 @@ end
 if isinteractive()
     # porous_convection_3D_xpu(63, 3, 1; do_visu=true, do_check=true,test=false)          # DEBUG CASE
     # porous_convection_3D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)     # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 63, nt = 500, nvis = 20
-    porous_convection_3D_xpu(127, 4000, 50; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 511, nt = 4000, nvis = 50
+    porous_convection_3D_xpu(127, 3, 1; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 511, nt = 4000, nvis = 50
 
 end

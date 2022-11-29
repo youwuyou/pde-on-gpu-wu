@@ -1,7 +1,6 @@
 using Test
 
 include("../scripts/PorousConvection_3D_xpu.jl")
-# TODO: 3D thermal porous PorousConvection
 @testset "Unit test: PorousConvection_3D_xpu.jl" begin
 
     # add one unit test
@@ -37,3 +36,23 @@ end;
 # end;
 
     
+# @testset "Reference test: PorousConvection_3D_xpu.jl" begin
+#     # reference test
+#     using JLD
+
+#     qDx_p_ref    = load("qDx_p_ref_5_3D.jld")["data"]
+#     qDy_p_ref    = load("qDy_p_ref_5_3D.jld")["data"]
+
+#     # SMALLER CASE: ny = 10, nt = 5, nvis=1 but dummy value for visualization
+#     # qDx_p, qDy_p = porous_convection_3D_xpu(10, 5, 1; do_visu=false, do_check=true, test=false)  
+    
+#     # choosing 5 non-repeative sample
+#     using StatsBase
+#     I = sample(1:length(qDx_p_ref), 5, replace=false)
+
+#     @testset "randomly chosen entries $i" for i in I
+#         @test qDx_p[i] ≈ qDx_p_ref[i]
+#         @test qDy_p[i] ≈ qDy_p_ref[i]
+#     end
+
+# end;

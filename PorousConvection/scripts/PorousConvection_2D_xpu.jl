@@ -49,6 +49,19 @@ end
 end
 
 
+# update dTdt
+@parallel_indices (ix,iy,iz) function compute_dTdt!(dTdt, T, T_old, qDx, qDy, _dx, _dy, _dt, _ϕ)
+
+    dTdt     .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1]).* _dt .+
+                (max.(qDx[2:end-2,2:end-1],0.0).*diff(T[1:end-1,2:end-1],dims=1).* _dx .+
+                 min.(qDx[3:end-1,2:end-1],0.0).*diff(T[2:end  ,2:end-1],dims=1).* _dx .+
+                 max.(qDy[2:end-1,2:end-2],0.0).*diff(T[2:end-1,1:end-1],dims=2).* _dy .+
+                 min.(qDy[2:end-1,3:end-1],0.0).*diff(T[2:end-1,2:end  ],dims=2).* _dy).* _ϕ
+
+    return nothing
+end 
+
+
 
 # update the temperature
 @parallel function compute_T!(T, dTdt, qTx, qTy, _dx, _dy, _dt_β_dτ_T)
@@ -76,13 +89,7 @@ function compute!(Pf, T, T_old, qDx, qDy,  qTx, qTy, dTdt, _dx, _dy, _dt, k_ηf,
 
     # thermo
     @parallel compute_flux_temp!(T, qTx, qTy, _dx, _dy, λ_ρCp, _1_θ_dτ_T)
-
-    dTdt           .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1]).* _dt .+
-                           (max.(qDx[2:end-2,2:end-1],0.0).*diff(T[1:end-1,2:end-1],dims=1).* _dx .+
-                            min.(qDx[3:end-1,2:end-1],0.0).*diff(T[2:end  ,2:end-1],dims=1).* _dx .+
-                            max.(qDy[2:end-1,2:end-2],0.0).*diff(T[2:end-1,1:end-1],dims=2).* _dy .+
-                            min.(qDy[2:end-1,3:end-1],0.0).*diff(T[2:end-1,2:end  ],dims=2).* _dy).* _ϕ
-
+    @parallel compute_dTdt!(dTdt, T, T_old, qDx, qDy, _dx, _dy, _dt, _ϕ)
     @parallel compute_T!(T, dTdt, qTx, qTy, _dx, _dy, _dt_β_dτ_T)
 
     # Boundary condition
@@ -91,9 +98,6 @@ function compute!(Pf, T, T_old, qDx, qDy,  qTx, qTy, dTdt, _dx, _dy, _dt, k_ηf,
 
     return nothing
 end
-
-
-
 
 
 @views function porous_convection_2D_xpu(ny_, nt_, nvis_; do_visu=false, do_check=true, test=true)
@@ -151,7 +155,6 @@ end
     st          = ceil(Int,nx/25)
     Xc, Yc      = [x for x=xc, y=yc], [y for x=xc,y=yc]
     Xp, Yp      = Xc[1:st:end,1:st:end], Yc[1:st:end,1:st:end]
-    iframe = 0
    
 
     # visu - needed parameters for plotting
@@ -213,7 +216,6 @@ end
             qDx_p = qDx_c[1:st:end,1:st:end]
             qDy_p = qDy_c[1:st:end,1:st:end]
 
-
             # visualisation
             if do_visu
                 heatmap(xc,yc,Array(T');xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
@@ -230,13 +232,10 @@ end
     
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s \n", t_toc, T_eff)
 
-    
-    
     if test == true
         save("../test/qDx_p_ref_30_2D_xpu.jld", "data", qDx_c[1:st:end,1:st:end])  # store case for reference testing
         save("../test/qDy_p_ref_30_2D_xpu.jld", "data", qDy_c[1:st:end,1:st:end])
     end
-
     
     # Return qDx_p and qDy_p at final time
     return [qDx_c[1:st:end,1:st:end], qDy_c[1:st:end,1:st:end]]   
@@ -246,9 +245,11 @@ end
 
 if isinteractive()
     
-    porous_convection_2D_xpu(63, 1, 20; do_visu=true, do_check=true,test=false)      # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
+    porous_convection_2D_xpu(10, 5, 1; do_visu=false, do_check=true,test=false)        # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
 
-    # porous_convection_2D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)      # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
+    # porous_convection_2D_xpu(63, 1, 20; do_visu=true, do_check=true,test=false)       # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
+
+    # porous_convection_2D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)    # RUN IT FOR EX01, TASK 3 (WEEK7)! ny = 63, nt = 500, nvis = 20
     # porous_convection_2D_xpu(511, 4000, 50; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX01, TASK 4 (WEEK7)! ny = 511, nt = 4000, nvis = 50
 
 end

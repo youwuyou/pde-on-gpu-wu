@@ -23,9 +23,9 @@ function visualise()
 
     load_array("out_T",T)
 
-    print(eltype(T))
-    # DEBUG
-    display(T)
+    # print(eltype(T))
+    # # DEBUG
+    # display(T)
 
     xc,yc,zc = LinRange(0,lx,nx),LinRange(0,ly,ny),LinRange(0,lz,nz)
     fig      = Figure(resolution=(1600,1000),fontsize=24)

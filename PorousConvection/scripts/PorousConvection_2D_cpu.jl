@@ -5,7 +5,7 @@ using JLD  # for storing testing data
 @views avx(A) = 0.5.*(A[1:end-1,:].+A[2:end,:])
 @views avy(A) = 0.5.*(A[:,1:end-1].+A[:,2:end])
 
-@views function porous_convection_2D_xpu(ny_, nt_; test=true)
+@views function porous_convection_2D_xpu(ny_, nt_, nvis_; test=true)
     # physics
     lx,ly       = 40., 20.
     k_ηf        = 1.0
@@ -24,7 +24,7 @@ using JLD  # for storing testing data
     cfl         = 1.0/sqrt(2.1)
     maxiter     = 10max(nx,ny)
     ϵtol        = 1e-6
-    nvis        = 20
+    nvis        = nvis_                   # 20
     ncheck      = ceil(max(nx,ny)) # ceil(0.25max(nx,ny))
   
     # preprocessing
@@ -118,8 +118,8 @@ using JLD  # for storing testing data
 
 
     if test == true
-        save("../test/qDx_p_ref_30_2D.jld", "data", qDx_c[1:st:end,1:st:end])  # store case for reference testing
-        save("../test/qDy_p_ref_30_2D.jld", "data", qDy_c[1:st:end,1:st:end])
+        save("../test/qDx_p_ref_5_2D.jld", "data", qDx_c[1:st:end,1:st:end])  # store case for reference testing
+        save("../test/qDy_p_ref_5_2D.jld", "data", qDy_c[1:st:end,1:st:end])
     end
     
     # Return qDx_p and qDy_p at final time
@@ -129,5 +129,6 @@ end
 
 
 if isinteractive()
-    porous_convection_2D_xpu(63, 500; test=false)  # ny = 63
+    # porous_convection_2D_xpu(63, 500, 20; test=false)  # ny=63, nt=500, nvis=20    
+    porous_convection_2D_xpu(10, 5, 1; test=true)  # SMALLER CASE: ny=3, nt=5, nvis=2 storing data for testing
 end

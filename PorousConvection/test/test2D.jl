@@ -34,15 +34,15 @@ end;
     # reference test
     using JLD
 
-    qDx_p_ref    = load("qDx_p_ref_30_2D.jld")["data"]
-    qDy_p_ref    = load("qDy_p_ref_30_2D.jld")["data"]
+    qDx_p_ref    = load("qDx_p_ref_5_2D.jld")["data"]
+    qDy_p_ref    = load("qDy_p_ref_5_2D.jld")["data"]
 
-    # FIXME: change the signatures when any modifications exist
-    qDx_p, qDy_p = porous_convection_2D_xpu(63, 30, 20; do_visu=false, do_check=true, test=false)  # ny = 63, nt = 30
-
-
+    # SMALLER CASE: ny = 10, nt = 5, nvis=1 but dummy value for visualization
+    qDx_p, qDy_p = porous_convection_2D_xpu(10, 5, 1; do_visu=false, do_check=true, test=false)  
+    
+    # choosing 5 non-repeative sample
     using StatsBase
-    I = sample(1:length(qDx_p_ref), 20, replace=false)
+    I = sample(1:length(qDx_p_ref), 5, replace=false)
 
     @testset "randomly chosen entries $i" for i in I
         @test qDx_p[i] ≈ qDx_p_ref[i]
