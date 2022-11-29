@@ -92,21 +92,28 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 | --- | --- | --- |
 | Code Exercise 8.1 | Towards distributed memory computing on GPUs |  |
 | Code Exercise 8.2 | Multi-XPU computing |  |
-| Code Exercise 8.3 | Navier-Stokes flow |  |
-| Code Exercise 8.4 | Automatic documentation in Julia |  |
 
 
 
-### Lecture 9: Advanced optimisations
+### Lecture 9: Multi-xPU & Projects
 
 | Number | Topic | Finished |
 | --- | --- | --- |
-| Code Exercise 9.1 | Push-ups with memory copy |  |
-| Code Exercise 9.2 | Advanced data transfer optimisations (part 1) |  |
-| Code Exercise 9.3 | Advanced data transfer optimisations (part 2) |  |
+| Code Exercise 9.1 | Multi-xPU computing projects |  |
+| Code Exercise 9.2 | Automatic documentation in Julia |  |
 
 
-### Lecture 10: Final Projects
+
+### Lecture 10: Advanced optimisations
+
+| Number | Topic | Finished |
+| --- | --- | --- |
+| Code Exercise 10.1 | Push-ups with memory copy |  |
+| Code Exercise 10.2 | Advanced data transfer optimisations (part 1) |  |
+| Code Exercise 10.3 | Advanced data transfer optimisations (part 2) |  |
+
+
+### Lecture 11 - 14: Final Projects
 
 **Topic:** Hydro-mechanical solver for (in)compressible two-phase flow equations
 
