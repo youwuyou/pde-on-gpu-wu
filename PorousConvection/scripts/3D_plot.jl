@@ -8,24 +8,16 @@ end
 function visualise()
     lx,ly,lz = 40.0,20.0,20.0
 
-    # example case
-    # nx = 255
-    # ny = nz = 127
-
     # debug case
-    nz          = 63
+    nz          = 127             # DEBUG 63
     ny          = nz
     nx          = 2*(nz+1)-1
 
     T  = zeros(Float32,nx,ny,nz)
-    # T  = rand(Float32,nx,ny,nz)
 
-
+    # load data
     load_array("out_T",T)
 
-    # print(eltype(T))
-    # # DEBUG
-    # display(T)
 
     xc,yc,zc = LinRange(0,lx,nx),LinRange(0,ly,ny),LinRange(0,lz,nz)
     fig      = Figure(resolution=(1600,1000),fontsize=24)

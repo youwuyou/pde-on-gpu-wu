@@ -22,10 +22,6 @@ end
 
 
 @views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
-@views avx(A) = (A[1:end-1,:,:].+A[2:end,:,:]) ./ 2
-@views avy(A) = (A[:,1:end-1,:].+A[:,2:end,:]) ./ 2
-@views avz(A) = (A[:,:, 1:end-1].+A[:,:,2:end]) ./ 2
-
 
 
 # Darcy's flux update in x, y directions
@@ -51,11 +47,10 @@ end
 
 # Temperature flux update in x, y directions
 @parallel function compute_flux_temp!(T, qTx, qTy, qTz, _dx, _dy, _dz, λ_ρCp, _1_θ_dτ_T)
-
     # select inner elements using @d_xi etc.
-    @all(qTx)  = @all(qTx) - (@all(qTx) + λ_ρCp* @d_xi(T) * _dx) * _1_θ_dτ_T                    
-    @all(qTy)  = @all(qTy) - (@all(qTy) + λ_ρCp* @d_yi(T) * _dy) * _1_θ_dτ_T
-    @all(qTz)  = @all(qTz) - (@all(qTz) + λ_ρCp* @d_zi(T) * _dz) * _1_θ_dτ_T
+    @all(qTx)  = @all(qTx) - (@all(qTx) + @d_xi(T) * λ_ρCp * _dx) * _1_θ_dτ_T                    
+    @all(qTy)  = @all(qTy) - (@all(qTy) + @d_yi(T) * λ_ρCp * _dy) * _1_θ_dτ_T
+    @all(qTz)  = @all(qTz) - (@all(qTz) + @d_zi(T) * λ_ρCp * _dz) * _1_θ_dτ_T
 
     return nothing
 end
@@ -64,14 +59,6 @@ end
 
 @parallel_indices (ix, iy, iz) function compute_dTdt!(dTdt, T, T_old, qDx, qDy, qDz, _dx, _dy, _dz, _dt, _ϕ)
 
-    # dTdt           .= (T[2:end-1,2:end-1,2:end-1] .- T_old[2:end-1,2:end-1,2:end-1]).* _dt .+
-    #                        (max.(qDx[2:end-2,2:end-1,2:end-1],0.0).*diff(T[1:end-1,2:end-1,2:end-1],dims=1).* _dx .+
-    #                         min.(qDx[3:end-1,2:end-1,2:end-1],0.0).*diff(T[2:end  ,2:end-1,2:end-1],dims=1).* _dx .+
-    #                         max.(qDy[2:end-1,2:end-2,2:end-1],0.0).*diff(T[2:end-1,1:end-1,2:end-1],dims=2).* _dy .+
-    #                         min.(qDy[2:end-1,3:end-1,2:end-1],0.0).*diff(T[2:end-1,2:end  ,2:end-1],dims=2).* _dy .+
-    #                         max.(qDz[2:end-1,2:end-1,2:end-2],0.0).*diff(T[2:end-1,2:end-1,1:end-1],dims=3).* _dz .+
-    #                         min.(qDz[2:end-1,2:end-1,3:end-1],0.0).*diff(T[2:end-1,2:end-1,2:end  ],dims=3).* _dz
-    #                    ).* _ϕ
     if (ix<=size(dTdt,1) && iy<=size(dTdt,2) && iz<=size(dTdt,3))
         dTdt[ix,iy,iz] = (T[ix+1,iy+1,iz+1] - T_old[ix+1,iy+1,iz+1])*_dt +
                          (max(qDx[ix+1,iy+1,iz+1],0.0)*(T[ix+1,iy+1,iz+1]-T[ix  ,iy+1,iz+1])*_dx +
@@ -82,12 +69,9 @@ end
                           min(qDz[ix+1,iy+1,iz+2],0.0)*(T[ix+1,iy+1,iz+2]-T[ix+1,iy+1,iz+1])*_dz)*_ϕ
     end
 
-
-
     return nothing
 
 end
-
 
 
 # update the temperature
@@ -106,15 +90,22 @@ end
     return
 end
 
+@parallel_indices (ix,iz) function bc_y!(A)
+    A[ix, 1  ,iz] = A[ix, 2    ,iz]
+    A[ix, end,iz] = A[ix, end-1,iz]
+    return
+end
+
 # update the residual
-# @parallel function compute_r!(r_Pf,r_T,qDx,qDy,qDz,qTx,qTy,qTz,dTdt,_dx,_dy,_dz)
-#     @all(r_Pf) = @d_xa(qDx)*_dx + @d_ya(qDy)*_dy + @d_za(qDz)*_dz
-#     @all(r_T)  = @all(dTdt) + @d_xa(qTx)*_dx + @d_ya(qTy)*_dy + @d_za(qTz)*_dz
-#     return nothing
-# end
+@parallel function compute_r!(r_Pf, r_T, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz)
+    @all(r_Pf)  = @d_xa(qDx)* _dx + @d_ya(qDy)* _dy + @d_za(qDz)* _dz
+    @all(r_T)   = @all(dTdt) + @d_xa(qTx)* _dx + @d_ya(qTy)* _dy + @d_za(qTz)* _dz
+
+    return nothing
+end
 
 
-function compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz, _dt, k_ηf, αρg, _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T)
+function compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz, _dt, k_ηf, αρg, _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, λ_ρCp_dx, λ_ρCp_dy, λ_ρCp_dz, _1_θ_dτ_T, _dt_β_dτ_T)
 
     # hydro
     @parallel compute_flux_darcy!(Pf, T, qDx, qDy, qDz, _dx, _dy, _dz, k_ηf, αρg, _1_θ_dτ_D)
@@ -127,12 +118,10 @@ function compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _d
 
     # Boundary condition
     @parallel (1:size(T,2),1:size(T,3)) bc_x!(T)
-
+    @parallel (1:size(T,1),1:size(T,3)) bc_y!(T)
 
     return nothing
 end
-
-
 
 
 
@@ -157,11 +146,11 @@ end
     maxiter     = 10max(nx,ny,nz)
     ϵtol        = 1e-6
     nvis        = nvis_
-    ncheck      = ceil(max(nx,ny,nz)) # ceil(0.25max(nx,ny))
+    ncheck      = ceil(2max(nx,ny,nz))    # ceil(0.25max(nx,ny))
   
     # preprocessing
     dx,dy,dz       = lx/nx,ly/ny,lz/nz
-    xn,yn,zn       = LinRange(-lx/2,lx/2,nx+1),LinRange(-ly,0,ny+1),LinRange(-lz,0,nz+1)
+    xn,yn,zn       = LinRange(-lx/2,lx/2,nx+1),LinRange(-ly/2,ly/2,ny+1),LinRange(-lz,0,nz+1)
     xc,yc,zc       = av1(xn),av1(yn),av1(zn)
 
     θ_dτ_D         = max(lx,ly,lz)/re_D/cfl/min(dx,dy,dz)
@@ -172,29 +161,28 @@ end
     _ϕ             = 1. / ϕ
     _1_θ_dτ_D      = 1 ./(1.0 + θ_dτ_D)
     _β_dτ_D        = 1. /β_dτ_D
-   
+    λ_ρCp_dx, λ_ρCp_dy, λ_ρCp_dz = λ_ρCp/dx, λ_ρCp/dy, λ_ρCp/dz
+
     # array initialization
-    Pf                 = @zeros(nx,ny,nz)
-    r_Pf               = @zeros(nx,ny,nz)
-    qDx,qDy,qDz        = @zeros(nx+1,ny,nz), @zeros(nx,ny+1,nz), @zeros(nx,ny,nz+1)
-    qDx_c,qDy_c,qDz_c  = zeros(nx,ny,nz), zeros(nx,ny,nz), zeros(nx,ny,nz) 
-    qDmag              = zeros(nx,ny,nz)
+    Pf             = @zeros(nx,ny,nz)
+    r_Pf           = @zeros(nx,ny,nz)
+    qDx,qDy,qDz    = @zeros(nx+1,ny,nz), @zeros(nx,ny+1,nz), @zeros(nx,ny,nz+1)
 
-    T_cpu       = [ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
-    T           = Data.Array(T_cpu)   # Type: Float64
-    T_old       = Data.Array(copy(T_cpu))
+    dTdt           = @zeros(nx-2,ny-2,nz-2)
+    r_T            = @zeros(nx-2,ny-2,nz-2)
+    qTx            = @zeros(nx-1,ny-2,nz-2)
+    qTy            = @zeros(nx-2,ny-1,nz-2)
+    qTz            = @zeros(nx-2,ny-2,nz-1)
+    
+    T_cpu          = [ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
+    T_cpu[:,:,1]  .= ΔT/2; T_cpu[:,:,end].=-ΔT/2    # B.C.
 
-
-    dTdt        = @zeros(nx-2,ny-2,nz-2)
-    r_T         = @zeros(nx-2,ny-2,nz-2)
-    qTx         = @zeros(nx-1,ny-2,nz-2)
-    qTy         = @zeros(nx-2,ny-1,nz-2)
-    qTz         = @zeros(nx-2,ny-2,nz-1)
-
+    T              = Data.Array(T_cpu)   # Type: Float64
+    T_old          = Data.Array(copy(T_cpu))
+    
     # vis
     st          = ceil(Int,nx/25)
    
-
     # visu - needed parameters for plotting
     if do_visu
         # plotting environment
@@ -204,7 +192,6 @@ end
         println("Animation directory: $(anim.dir)")
         iframe = 0
     end
-
 
     # action
     t_tic = 0.0; niter = 0
@@ -233,11 +220,10 @@ end
 
             if (it==1 && iter == 11) t_tic = Base.time(); niter=0 end
 
-            compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz, _dt, k_ηf, αρg, _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, _1_θ_dτ_T, _dt_β_dτ_T)
+            compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz, _dt, k_ηf, αρg, _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, λ_ρCp_dx, λ_ρCp_dy, λ_ρCp_dz, _1_θ_dτ_T, _dt_β_dτ_T)
             
             if do_check && iter % ncheck == 0
-                r_Pf  .= diff(qDx,dims=1).* _dx .+ diff(qDy,dims=2).* _dy .+ diff(qDz,dims=3).* _dz
-                r_T   .= dTdt .+ diff(qTx,dims=1).* _dx .+ diff(qTy,dims=2).* _dy .+ diff(qTz,dims=3).* _dz
+                @parallel compute_r!(r_Pf, r_T, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz)
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
             end
@@ -245,17 +231,8 @@ end
         end
 
         
-        if it % nvis == 0
-            qDx_c .= avx(Array(qDx)) 
-            qDy_c .= avy(Array(qDy))
-            qDz_c .= avz(Array(qDz))
-            qDmag .= sqrt.(qDx_c.^2 .+ qDy_c.^2 .+ qDz_c.^2)
-            qDx_c ./= qDmag
-            qDy_c ./= qDmag
-            qDz_c ./= qDmag
-            
+        if do_visu && it % nvis == 0            
             # visualisation
-            iframe = 0
             if do_visu
                 p1=heatmap(xc,zc,Array(T)[:,ceil(Int,ny/2),:]';xlims=(xc[1],xc[end]),ylims=(zc[1],zc[end]),aspect_ratio=1,c=:turbo)
                 png(p1,@sprintf("viz3D_out/%04d.png",iframe+=1))
@@ -278,21 +255,18 @@ end
     
     # store data in case further testing needed
     if test == true
-        save("../test/qDx_p_ref_30_3D_xpu.jld", "data", qDx_c[1:st:end,1:st:end,1:st:end])  # store case for reference testing
-        save("../test/qDy_p_ref_30_3D_xpu.jld", "data", qDy_c[1:st:end,1:st:end,1:st:end])
-        save("../test/qDz_p_ref_30_3D_xpu.jld", "data", qDz_c[1:st:end,1:st:end,1:st:end])
+        save("../test/temp_ref_5_3D_xpu.jld", "data", T)  # store case for reference testing
     end
 
 
-    # Return qDx_p and qDy_p at final time
-    return [qDx_c[1:st:end,1:st:end,1:st:end], qDy_c[1:st:end,1:st:end,1:st:end], qDz_c[1:st:end,1:st:end,1:st:end]];   
+    # Return temperature T at final time
+    return Array(T);
 end
-
 
 
 if isinteractive()
     # porous_convection_3D_xpu(63, 3, 1; do_visu=true, do_check=true,test=false)          # DEBUG CASE
-    # porous_convection_3D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)     # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 63, nt = 500, nvis = 20
-    porous_convection_3D_xpu(127, 3, 1; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 511, nt = 4000, nvis = 50
+    # porous_convection_3D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)       # RUN IT FOR EX02, TASK 2 (WEEK7)! nz = 63, nt = 500, nvis = 20
+    porous_convection_3D_xpu(127, 2000, 50; do_visu=false, do_check=true,test=false)      # RUN IT FOR EX02, TASK 3 (WEEK7)! nz = 127, nt = 2000, nvis = 50
 
 end

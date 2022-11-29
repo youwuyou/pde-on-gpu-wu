@@ -1,4 +1,4 @@
-const USE_GPU = true
+const USE_GPU = false
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 @static if USE_GPU
@@ -7,6 +7,8 @@ else
     @init_parallel_stencil(Threads, Float64, 3)
 end
 using Plots,Plots.Measures,Printf
+using JLD  # for storing testing data
+
 default(size=(800,500),framestyle=:box,label=false,grid=false,margin=5mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
 @views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
@@ -68,7 +70,8 @@ end
     return
 end
 
-@views function porous_convection_3D(;nz=63,do_viz=false)
+
+@views function porous_convection_3D(;nz_, nt_, nvis_, do_viz=false, test=false)
     # physics
     lx,ly,lz    = 40.0,20.0,20.0
     k_ηf        = 1.0
@@ -78,14 +81,14 @@ end
     Ra          = 1000
     λ_ρCp       = 1/Ra*(αρg*k_ηf*ΔT*lz/ϕ) # Ra = αρg*k_ηf*ΔT*lz/λ_ρCp/ϕ
     # numerics
-    # nz          = 127
+    nz          = nz_                     # 127
     nx,ny       = 2*(nz+1)-1,nz
-    nt          = 2000
+    nt          = nt_
     re_D        = 4π
     cfl         = 1.0/sqrt(3.1)
     maxiter     = 10max(nx,ny,nz)
     ϵtol        = 1e-6
-    nvis        = 50
+    nvis        = nvis_
     ncheck      = ceil(2max(nx,ny,nz))
     # preprocessing
     dx,dy,dz    = lx/nx,ly/ny,lz/nz
@@ -103,7 +106,8 @@ end
     r_Pf        = @zeros(nx  ,ny  ,nz  )
     qDx         = @zeros(nx+1,ny  ,nz  )
     qDy         = @zeros(nx  ,ny+1,nz  )
-    qDz         = @zeros(nx  ,ny  ,nz+1)   
+    qDz         = @zeros(nx  ,ny  ,nz+1) 
+
     dTdt        = @zeros(nx-2,ny-2,nz-2)
     r_T         = @zeros(nx-2,ny-2,nz-2)
     qTx         = @zeros(nx-1,ny-2,nz-2)
@@ -114,6 +118,7 @@ end
     T           = Data.Array(T)
     T_old       = copy(T)
     # vis
+    st          = ceil(Int,nx/25)
     if do_viz
         ENV["GKSwstype"]="nul"; if isdir("viz3D_out")==false mkdir("viz3D_out") end
         loadpath = "viz3D_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)")
@@ -163,7 +168,23 @@ end
             save_array("out_Pf",convert.(Float32,Array(Pf)))
         end
     end
+
+    # store data in case further testing needed
+    if test == true
+        save("./test/temp_ref_5_3D.jld", "data", Array(T))  # store case for reference testing
+    end
+
     return
 end
 
-porous_convection_3D(;nz=127,do_viz=true)
+if isinteractive()
+
+    # porous_convection_3D(;nz=63, 2000, 50; do_viz=false, test=false)  # default set-up
+    # porous_convection_3D_xpu(63, 3, 1; do_visu=true, do_check=true,test=false)          # DEBUG CASE
+    # porous_convection_3D_xpu(63, 500, 20; do_visu=true, do_check=true,test=false)     # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 63, nt = 500, nvis = 20
+    # porous_convection_3D_xpu(127, 3, 1; do_visu=true, do_check=true,test=false)  # RUN IT FOR EX02, TASK .. (WEEK7)! nz = 511, nt = 4000, nvis = 50
+    
+    porous_convection_3D(; nz_=30, nt_=2, nvis_=1, do_viz=true, test=true)  # for storing reference test data
+
+end
+

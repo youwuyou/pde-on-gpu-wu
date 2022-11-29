@@ -8,8 +8,8 @@ comm = MPI.COMM_WORLD
 me   = MPI.Comm_rank(comm)
 # select device
 comm_l = MPI.Comm_split_type(comm, MPI.MPI_COMM_TYPE_SHARED, me)
-me_l   = MPI.Comm_rank(comm_l)
-GPU_ID = CUDA.device!(me_l)
+me_l   = MPI.Comm_rank(comm_l)   # per node numbering to obtain the GPU ID
+GPU_ID = CUDA.device!(me_l)      # set specific CUDA device 
 sleep(0.1me)
 println("Hello world, I am $(me) of $(MPI.Comm_size(comm)) using $(GPU_ID)")
 MPI.Barrier(comm)

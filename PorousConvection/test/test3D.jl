@@ -28,31 +28,23 @@ include("../scripts/PorousConvection_3D_xpu.jl")
 
 end;
 
-# @testset "Reference test: PorousConvection_3D_xpu.jl" begin
     
-#     # add one reference test
-#     # => run on a small grid, shall not take longer than 5 s
+@testset "Reference test: PorousConvection_3D_xpu.jl" begin
 
-# end;
+    using JLD
 
-    
-# @testset "Reference test: PorousConvection_3D_xpu.jl" begin
-#     # reference test
-#     using JLD
+    # reference data was computed using the ref script PorousConvection_3D_xpu_daint.jl
+    T_ref = vec(load("temp_ref_5_3D.jld")["data"])
 
-#     qDx_p_ref    = load("qDx_p_ref_5_3D.jld")["data"]
-#     qDy_p_ref    = load("qDy_p_ref_5_3D.jld")["data"]
+    # SMALLER CASE: ny = 10, nt = 5, nvis=1 but dummy value for visualization
+    T = vec(porous_convection_3D_xpu(30, 2, 1; do_visu=false, do_check=true, test=false))  
 
-#     # SMALLER CASE: ny = 10, nt = 5, nvis=1 but dummy value for visualization
-#     # qDx_p, qDy_p = porous_convection_3D_xpu(10, 5, 1; do_visu=false, do_check=true, test=false)  
-    
-#     # choosing 5 non-repeative sample
-#     using StatsBase
-#     I = sample(1:length(qDx_p_ref), 5, replace=false)
+    # choosing 5 non-repeative sample
+    using StatsBase
+    I = sample(1:length(T), 5, replace=false)
 
-#     @testset "randomly chosen entries $i" for i in I
-#         @test qDx_p[i] ≈ qDx_p_ref[i]
-#         @test qDy_p[i] ≈ qDy_p_ref[i]
-#     end
+    @testset "randomly chosen entries $i" for i in I
+        @test T[i] ≈ T_ref[i]
+    end
 
-# end;
+end;

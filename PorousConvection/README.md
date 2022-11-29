@@ -110,6 +110,11 @@ The resulted plots are stored as png files and converted to gif
     - edited from `PorousConvection_2D_xpu.jl` script with `@parallel` approach preferred
 
 
+For lecture 7, exercise 2.2 we have the following gif. animation produced. The resulted plots of the 2D slices in 3D case are stored as png files and converted to gif
+
+ <img src="./docs/porous3D_small.gif" width="60%">
+
+
 With the following parameters, we run our code on Piz Daint using one Tesla P100 GPU, where we expected the run to take 2 hours of time.
 
 ```bash
@@ -122,17 +127,15 @@ nvis     = 50
 ncheck   = ceil(2max(nx,ny,nz))
 ```
 
-TODO: add parameters on the function signature for reproducing ex03/04 differently
-
-TODO: add final 3D animation showing evolution of temperature with GLMakie
-
-
+*Memory throughput:*  
 ```bash
-# Running on Tesla V100
-julia> include("PorousConvection_3D_xpu.jl")
-Animation directory: viz3D_out/
-Time = 14132.146 sec, T_eff = 151.489 GB/s 
+Time = 5315.426 sec, T_eff = 359.388 GB/s 
 ```
+
+Here is the final 3D animation showing evolution of temperature with GLMakie
+
+ <img src="./docs/T_3D.png" width="60%">
+
 
 
 #   Troubleshooting
