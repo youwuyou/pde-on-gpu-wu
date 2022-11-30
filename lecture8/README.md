@@ -18,8 +18,20 @@ Lecture 8: Distributed computing
 
 ### Task 1:  Finalise the scripts in class
 
-TODO: two figures with short description
-of final distribution of the concentration C
+*2-procs case:* 
+
+For the 2-procs case no specific initial condition need to be taken into account, we don't necessarily need the global indices. A global array Cg is updated in the traditional way and plotted as comparison.
+
+ <img src="./docs/fake_parallelisation.gif" width="60%">
+
+
+*n-procs case:* 
+
+For the n-procs case we need to manually add several loops in order to update the halo of the local bounaries correctly. Also since we have a Gaussian as initial condition here, we need to utilize the global indexing in order to assign the initial condition for each process correctly
+
+ <img src="./docs/fake_parallelisation_gaussian.gif" width="60%">
+
+
 
 ### Task 2:  Finalise the 2D MPI script in class
 
