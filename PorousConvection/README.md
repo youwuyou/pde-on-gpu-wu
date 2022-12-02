@@ -41,7 +41,13 @@ The thermal porous convection equations describe the evolution of pressure and t
 
 The governing equations used are as followed:
 
-$$\begin{cases} \vec{q_D} = -\frac{k}{\eta}(\nabla p - \rho \vec{g}) \\  \nabla \cdot \vec{q_D} = 0  \\ \vec{q_F} = -k \nabla T \\ \frac{\partial T}{\partial t}+   \frac{1}{\varphi} \vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0 \end{cases}$$
+$$\vec{q_D} = -\frac{k}{\eta}(\nabla p - \rho \vec{g})$$
+
+$$\nabla \cdot \vec{q_D} = 0$$ 
+
+$$\vec{q_F} = -k \nabla T$$
+
+$$\frac{\partial T}{\partial t}+\frac{1}{\varphi} \vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0$$
 
 
 ## Numerical Method
@@ -52,7 +58,13 @@ We follow the techniques learnt in the class and as introduced in [Räss et al. 
 
 The augmented equations look as followed:
 
-$$\begin{cases} \color{blue} \theta_D \frac{\partial \vec{q_D}}{\partial \tau} \color{b} + \vec{q_D} = - \frac{k}{\eta}(\nabla p - \rho_0 \alpha \vec{g} T) \\ \color{orange} \beta \frac{\partial P}{\partial \tau} \color{b}- \nabla \cdot \vec{q_D} = 0  \\\color{blue} \theta_T \frac{\partial \vec{q_T}}{\partial \tau} \color{b} +\vec{q_T} = - \frac{\lambda}{\rho_0 c_p} \nabla T  \\ \color{orange} \frac{\partial T}{\partial \tau} + \color{b} \frac{\partial T}{\partial t}+   \frac{1}{\varphi} \vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0 \end{cases}$$
+$$\theta_D \frac{\partial \vec{q_D}}{\partial \tau} \color{b} + \vec{q_D} = - \frac{k}{\eta}(\nabla p - \rho_0 \alpha \vec{g} T)$$
+
+$$\beta \frac{\partial P}{\partial \tau} \color{b}- \nabla \cdot \vec{q_D} = 0$$
+
+$$\theta_T \frac{\partial \vec{q_T}}{\partial \tau} \color{b} +\vec{q_T} = - \frac{\lambda}{\rho_0 c_p} \nabla T$$  
+
+$$\frac{\partial T}{\partial \tau} + \color{b} \frac{\partial T}{\partial t}+\frac{1}{\varphi} \vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0$$
 
 **NOTE:**    $\theta_i$ terms ↔ relaxation time
 
