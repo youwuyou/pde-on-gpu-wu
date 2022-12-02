@@ -21,6 +21,8 @@ nprocs = (2, 2) # nprocs (x, y) dim
         ticks=nothing, framestyle=:box, titlefontsize=fontsize, titlefont="Courier", 
         xlabel="Lx", ylabel="Ly", xlims=(1, size(C,1)), ylims=(1, size(C,2)) )
     display(heatmap(C'; c=:turbo, title="diffusion 2D MPI", opts...))
+    savefig("diffusion2D_MPI.png")
+    
     return
 end
 

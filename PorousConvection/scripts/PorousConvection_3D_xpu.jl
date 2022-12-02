@@ -13,7 +13,11 @@ end
 using Printf, Plots
 using JLD  # for storing testing data
 
-# binary dump function for the final plotting
+"""
+I/O helper method
+
+Stores the final state of the temperature property array as 'out_T.bin' for later plotting as Float32.
+"""
 function save_array(Aname,A)
     fname = string(Aname,".bin")
     out = open(fname,"w"); write(out,A); close(out)
@@ -23,8 +27,9 @@ end
 
 @views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
 
-
-# Darcy's flux update in x, y directions
+"""
+Darcy's flux update in x, y directions
+"""
 @parallel function compute_flux_darcy!(Pf, T, qDx, qDy, qDz, _dx, _dy, _dz, k_ηf, αρg, _1_θ_dτ_D)
 
     # αρg acting only in z-direction
@@ -36,7 +41,9 @@ end
 end
 
 
-# pressure update
+"""
+Pressure update using Darcy flux
+"""
 @parallel function compute_Pf!(Pf, qDx, qDy, qDz, _dx, _dy, _dz, _β_dτ_D)
 
     @all(Pf) = @all(Pf) - (@d_xa(qDx) * _dx + @d_ya(qDy)* _dy + @d_za(qDz) * _dz) * _β_dτ_D
@@ -45,7 +52,9 @@ end
 end
 
 
-# Temperature flux update in x, y directions
+"""
+Temperature flux update in x, y, z directions
+"""
 @parallel function compute_flux_temp!(T, qTx, qTy, qTz, _dx, _dy, _dz, λ_ρCp, _1_θ_dτ_T)
     # select inner elements using @d_xi etc.
     @all(qTx)  = @all(qTx) - (@all(qTx) + @d_xi(T) * λ_ρCp * _dx) * _1_θ_dτ_T                    
@@ -56,7 +65,9 @@ end
 end
 
 
-
+"""
+Temperature derivative update
+"""
 @parallel_indices (ix, iy, iz) function compute_dTdt!(dTdt, T, T_old, qDx, qDy, qDz, _dx, _dy, _dz, _dt, _ϕ)
 
     if (ix<=size(dTdt,1) && iy<=size(dTdt,2) && iz<=size(dTdt,3))
@@ -74,7 +85,9 @@ end
 end
 
 
-# update the temperature
+"""
+update the temperature
+"""
 @parallel function compute_T!(T, dTdt, qTx, qTy, qTz, _dx, _dy, _dz, _dt_β_dτ_T)
 
     @inn(T) = @inn(T) - (@all(dTdt) + @d_xa(qTx)* _dx + @d_ya(qTy)* _dy + @d_za(qTz) * _dz)* _dt_β_dτ_T                    
@@ -83,20 +96,27 @@ end
 end
 
 
-# update boundary condition
+"""
+update boundary condition along x
+"""
 @parallel_indices (iy,iz) function bc_x!(A)
     A[1  ,iy,iz] = A[2    ,iy,iz]
     A[end,iy,iz] = A[end-1,iy,iz]
     return
 end
 
+"""
+update boundary condition along y
+"""
 @parallel_indices (ix,iz) function bc_y!(A)
     A[ix, 1  ,iz] = A[ix, 2    ,iz]
     A[ix, end,iz] = A[ix, end-1,iz]
     return
 end
 
-# update the residual
+"""
+update the residual for convergence monitoring
+"""
 @parallel function compute_r!(r_Pf, r_T, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz)
     @all(r_Pf)  = @d_xa(qDx)* _dx + @d_ya(qDy)* _dy + @d_za(qDz)* _dz
     @all(r_T)   = @all(dTdt) + @d_xa(qTx)* _dx + @d_ya(qTy)* _dy + @d_za(qTz)* _dz
@@ -105,6 +125,9 @@ end
 end
 
 
+"""
+compute kernel that gets launched
+"""
 function compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _dz, _dt, k_ηf, αρg, _ϕ, _1_θ_dτ_D, _β_dτ_D, λ_ρCp, λ_ρCp_dx, λ_ρCp_dy, λ_ρCp_dz, _1_θ_dτ_T, _dt_β_dτ_T)
 
     # hydro
@@ -124,7 +147,27 @@ function compute!(Pf, T, T_old, qDx, qDy, qDz, qTx, qTy, qTz, dTdt, _dx, _dy, _d
 end
 
 
+@doc raw"""
+    PorousConvection3D
+The incompressible darcy flow equations with thermal coupling. Solver in 3D with multi-xpu switch enabled.
 
+```math
+\vec{q_D} = -\frac{k}{\eta}(\nabla p - \rho \vec{g})
+```
+
+```math
+\nabla \cdot \vec{q_D} = 0
+```
+
+```math
+\vec{q_F} = -k \nabla T
+```
+
+```math
+\frac{\partial T}{\partial t}+ \frac{1}{\varphi} \vec{q_D} \cdot \nabla T + \nabla \cdot \vec{q_T} = 0
+```
+
+"""
 @views function porous_convection_3D_xpu(nz_, nt_, nvis_; do_visu=false, do_check=true, test=true)
     # physics
     lx,ly,lz    = 40., 20.,20.

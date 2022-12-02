@@ -46,7 +46,6 @@ using Plots, Test
         end
 
         for ip = 1:np-1 # update boundaries
-            # ...
             C[end, ip] = C[2, ip+1] 
             C[1, ip+1] = C[end, ip]
         end

@@ -1,5 +1,10 @@
 using GLMakie
 
+"""
+I/O helper method
+
+Load the final state of the temperature property array 'out_T.bin', which was previously stored in Float32 for plotting.
+"""
 function load_array(Aname,A)
     fname = string(Aname,".bin")
     fid=open(fname,"r"); read!(fid,A); close(fid)

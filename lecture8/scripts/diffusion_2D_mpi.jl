@@ -4,33 +4,73 @@ using Plots, Printf, MAT
 import MPI
 
 # enable plotting by default
-if !@isdefined do_save; do_save = true end
+if !@isdefined do_save; do_save = false end
+if !@isdefined do_gif;   do_gif = true end
 
 # MPI functions
 @views function update_halo(A, neighbors_x, neighbors_y, comm)
+
+    lx = size(A)[1]
+    ly = size(A)[2]
+
     # Send to / receive from neighbor 1 in dimension x ("left neighbor")
-    if neighbors_x[1] != MPI.MPI_PROC_NULL
-        # ...
-    end
-
-    # Send to / receive from neighbor 2 in dimension x ("right neighbor")
-    if neighbors_x[2] != MPI.MPI_PROC_NULL
-        # ...
-    end
-
-    # Send to / receive from neighbor 1 in dimension y ("bottom neighbor")
-    if neighbors_y[1] != MPI.MPI_PROC_NULL
-        # ...
+    if neighbors_x[1] != MPI.PROC_NULL
+        sendbuf = A[:,2]
+        recvbuf = zeros(ly)
+        
+        # send local [:,2] to neighbour [:,end]
+        MPI.Send(sendbuf, neighbors_x[1], 0, comm)
+    
+        # receive from neighbour [:,end-1] to local [:,1]
+        MPI.Recv!(recvbuf, neighbors_x[1], 1, comm)
+        A[:, 1] .= recvbuf
+        
     end
     
-    # Send to / receive from neighbor 2 in dimension y ("top neighbor")
-    if neighbors_y[2] != MPI.MPI_PROC_NULL
-        # ...
+    # Send to / receive from neighbor 2 in dimension x ("right neighbor")
+    if neighbors_x[2] != MPI.PROC_NULL
+        sendbuf = A[:,end-1]
+        recvbuf = zeros(ly)
+        
+        # send local [:,end-1] to neighbour [:,1]
+        MPI.Send(sendbuf, neighbors_x[2], 1, comm)
+    
+        # receive from neighbour [:,2] to local [:,end]
+        MPI.Recv!(recvbuf, neighbors_x[2], 0, comm)
+        A[:,end] .= recvbuf
+        
+    end
+
+    # Send to / receive from neighbor 1 in dimension y ("top neighbor")
+    if neighbors_y[1] != MPI.PROC_NULL
+        sendbuf = A[2,:]        
+        recvbuf = zeros(lx)
+        
+        # send local [2,:] to neighbour [end,:]
+        MPI.Send(sendbuf, neighbors_y[1], 2, comm)
+        
+        # receive from neighbour [end-1,:] to local [1,:]
+        MPI.Recv!(recvbuf, neighbors_y[1],3, comm)
+        A[1,:]  .= recvbuf
+    end
+    
+    # Send to / receive from neighbor 2 in dimension y ("bottom neighbor")
+    if neighbors_y[2] != MPI.PROC_NULL
+        sendbuf = A[end-1,:]
+        recvbuf = zeros(lx)
+        
+        # send local [end-1,:] to neighbour [1,:]
+        MPI.Send(sendbuf, neighbors_y[2], 3, comm)
+    
+        # receive from neighbour [2,:] to local [end,:]
+        MPI.Recv!(recvbuf, neighbors_y[2], 2, comm)
+        A[end,:] .= recvbuf
     end
     return
 end
 
-@views function diffusion_2D_mpi(; do_save=false)
+
+@views function diffusion_2D_mpi(; do_save=false, do_gif=false)
     # MPI
     MPI.Init()
     dims        = [0,0]
@@ -40,10 +80,15 @@ end
     comm_cart   = MPI.Cart_create(comm, dims, [0,0], 1)
     me          = MPI.Comm_rank(comm_cart)
     coords      = MPI.Cart_coords(comm_cart)
-    neighbors_x = MPI.Cart_shift(comm_cart, 0, 1)
-    neighbors_y = MPI.Cart_shift(comm_cart, 1, 1)
+    neighbors_x = MPI.Cart_shift(comm_cart, 1, 1)   # left and right neighbours
+    neighbors_y = MPI.Cart_shift(comm_cart, 0, 1)   # upper and bottom neighbours
+
     if (me==0) println("nprocs=$(nprocs), dims[1]=$(dims[1]), dims[2]=$(dims[2])") end
-    
+
+    # for storing data for gif 
+    outdir = string(@__DIR__, "/out2D"); if (me==0) if isdir("$outdir")==false mkdir("$outdir") end end
+
+
     # Physics
     lx, ly     = 10.0, 10.0
     D          = 1.0
@@ -75,6 +120,8 @@ end
         qy  .= .-D*diff(C[2:end-1,:], dims=2)/dy
         C[2:end-1,2:end-1] .= C[2:end-1,2:end-1] .- dt*(diff(qx, dims=1)/dx .+ diff(qy, dims=2)/dy)
         update_halo(C, neighbors_x, neighbors_y, comm_cart)
+        
+        if do_gif file = matopen("$(outdir)/C_$(me)_$(it).mat", "w"); write(file, "C", Array(C)); close(file) end
     end
     t_toc = (Base.time()-t_tic)
     if (me==0) @printf("Time = %1.4e s, T_eff = %1.2f GB/s \n", t_toc, round((2/1e9*nx*ny*sizeof(lx))/(t_toc/(nt-10)), sigdigits=2)) end
@@ -85,4 +132,4 @@ end
     return
 end
 
-diffusion_2D_mpi(; do_save=do_save)
+diffusion_2D_mpi(; do_save=do_save, do_gif=do_gif)

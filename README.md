@@ -90,17 +90,17 @@ In relation to lecture by: @luraess, @utkinis, @mauro3, @omlins
 
 | Number | Topic | Finished |
 | --- | --- | --- |
-| Code Exercise 8.1 | Towards distributed memory computing on GPUs |  |
+| Code Exercise 8.1 | Towards distributed memory computing on GPUs | :heavy_exclamation_mark: |
 | Code Exercise 8.2 | Multi-XPU computing |  |
 
-
+NOTE: code exercise 8.1 has one last problem remained
 
 ### Lecture 9: Multi-xPU & Projects
 
 | Number | Topic | Finished |
 | --- | --- | --- |
 | Code Exercise 9.1 | Multi-xPU computing projects |  |
-| Code Exercise 9.2 | Automatic documentation in Julia |  |
+| Code Exercise 9.2 | Automatic documentation in Julia | :heavy_check_mark: |
 
 
 
