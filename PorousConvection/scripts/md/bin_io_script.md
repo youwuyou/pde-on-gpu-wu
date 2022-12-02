@@ -1,7 +1,8 @@
-# # Randomized Heatmap
-#
-# Generation of a heatmap using randomized data
+# Randomized Heatmap
 
+Generation of a heatmap using randomized data
+
+````julia
 using Plots
 ENV["GKSwstype"]="nul"
 
@@ -42,11 +43,17 @@ function main()
 
     return B
 end
+````
 
-#-
+````
+Main.##315.main
+````
 
-## Only run this in an interactive session:
+````julia
+# Only run this in an interactive session:
 if isinteractive()
     B = main()
     display(heatmap(B))
 end
+````
+
